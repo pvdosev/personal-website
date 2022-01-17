@@ -50,7 +50,7 @@ body {
 }
 
 body > * {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
 }
 
 nav {
@@ -126,7 +126,7 @@ header { margin: 1em }
     padding: 2em;
 }
 
-hr{
+hr {
     color: #DDD184;
 }
 
@@ -188,8 +188,7 @@ hr{
     animation-duration: 3s;
 }
 
-
-h1 { font-family: "Atlantis Headline"; color: #B9A9AD; margin: 1rem 0; }
+h1, h2, h3 { font-family: "Atlantis Headline"; color: ##99bdba; margin: auto; word-spacing: .5em; }
 
 @keyframes vanish{
   0%{
