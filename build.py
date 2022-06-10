@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
-from pathlib import Path, PurePath
+from pathlib import Path
+from datetime import date
+from collections import namedtuple
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+Post = namedtuple("Post", ["name", "pathName", "date", "tags", "text"])
 
 
 def get_args():
@@ -40,11 +44,21 @@ def get_args():
 
 
 def get_posts(postPath):
-    """Return a list of posts, containing their text, modification time, and filename"""
+    """Return a list of posts, containing their text, modification time, and names"""
     posts = list()
     if postPath.is_dir():
-        for post in PurePath(postPath, "posts").glob("**/*.html"):
-            posts.append([post.read_text(), post.stat().st_mtime, post.stem()])
+        for post in postPath.glob("**/*.html"):
+            postMetadata, postText = post.read_text().split("\n-->\n")
+            postName, postDate, postTags = postMetadata.split("\n", 1)[-1].splitlines()
+            posts.append(
+                Post(
+                    postName,
+                    post.stem,
+                    date.fromisoformat(postDate),
+                    postTags,
+                    postText,
+                )
+            )
     return posts
 
 
@@ -55,19 +69,27 @@ def main():
     templateEnv = Environment(
         loader=FileSystemLoader(args.input), autoescape=select_autoescape()
     )
-    templates = ["index.html", "blog.html"]
+    templates = ["index.html"]
 
     outputPath = Path(args.output)
     if not outputPath.exists():
         outputPath.mkdir()
 
+    # generate separate pages
     for template in templates:
         outputFile = Path(args.output, template)
 
         if not outputFile.exists():
             outputFile.touch()
-
         outputFile.write_text(templateEnv.get_template(template).render(posts=posts))
+
+    # generate post pages
+    for post in posts:
+        outputFile = Path(args.output, post.pathName + ".html")
+
+        if not outputFile.exists():
+            outputFile.touch()
+        outputFile.write_text(templateEnv.get_template("post.html").render(post=post))
 
 
 if __name__ == "__main__":
