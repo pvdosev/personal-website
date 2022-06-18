@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+{# -*- engine:jinja2 -*- #}
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -8,23 +7,21 @@
     <!--link rel="stylesheet" href="./static/styles/main.css"-->
     <link rel='icon' href='./static/img/favicon.ico' type=
     'image/x-icon'>
+
     <title>{{post.name}}</title>
 </head>
-<body>
-    <header>
-        <a href="index.html">The Cool Ones</a>
-    </header>
-    <main>
-        <h2>{{ post.name }}</h2>
-        <div class="date">
-            {{post.date}}
-        </div>
-        <div>
-            {{post.tags}}
-        </div>
-        <article>
-            {{post.text | safe}}
-        </article>
-    </main>
-</body>
-</html>
+<header>
+    <a href="index.html">My Lil Website</a>
+</header>
+<main>
+    <h2>{{ post.name }}</h2>
+    <div class="date">
+        {{post.date}}
+    </div>
+    <div>
+        {{post.tags}}
+    </div>
+    <article>
+        {{post.text | safe}}
+    </article>
+</main>

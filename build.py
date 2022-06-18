@@ -5,7 +5,8 @@ from datetime import date
 from collections import namedtuple
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-Post = namedtuple("Post", ["name", "pathName", "date", "tags", "text"])
+# Named tuples are nice because they're immutable
+Post = namedtuple("Post", ["name", "pathName", "date", "tags", "text", "blurb"])
 
 
 def get_args():
@@ -49,6 +50,8 @@ def get_posts(postPath):
     if postPath.is_dir():
         for post in postPath.glob("**/*.html"):
             postMetadata, postText = post.read_text().split("\n-->\n")
+            # the blurb is the first paragraph in the text body
+            postBlurb = postText.partition("</p>")[0].removeprefix("<p>")
             postName, postDate, postTags = postMetadata.split("\n", 1)[-1].splitlines()
             posts.append(
                 Post(
@@ -57,6 +60,7 @@ def get_posts(postPath):
                     date.fromisoformat(postDate),
                     postTags,
                     postText,
+                    postBlurb,
                 )
             )
     return posts

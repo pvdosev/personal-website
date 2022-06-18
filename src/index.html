@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+{# -*- engine:jinja2 -*- #}
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -11,20 +10,20 @@
     'image/x-icon'>
     <title>Portfolio!</title>
 </head>
-<body>
-    <header>
-        <a href="/about">About Me</a> <a href="/blog">Projects</a>
-    </header>
-    <main>
-        <h1>Here's some stuff I've made:</h1>{% for post in posts%}
-        <a href="./{{post.pathName}}.html">
-        <h2>{{ post.name }}</h2>
-        <div class="date">
-            {{post.date}}
-        </div>
-        <article>
-            {{post.text | safe}}
-        </article></a>{% endfor %}
-    </main>
-</body>
-</html>
+<header>
+    <a href="/about">About Me</a>
+</header>
+<main>
+    <h1>Here's some stuff I've made:</h1>
+    {% for post in posts%}
+    <a href="./{{post.pathName}}.html">
+    <h2>{{ post.name }}</h2>
+    <div class="date">
+        {{post.date}}
+    </div>
+    <article>
+        {{post.blurb}}
+    </article>
+    Read more...</a>
+    {% endfor %}
+</main>
