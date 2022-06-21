@@ -30,7 +30,7 @@ def get_args():
         help="directory in which the final html will be output (default ./out/)",
         metavar="OUTPUT_DIR",
         type=Path,
-        default="./out/",
+        default=".",
     )
 
     parser.add_argument(
