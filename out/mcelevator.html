@@ -1,0 +1,147 @@
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content=
+    "width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="./static/styles/main.css">
+    <link rel='icon' href='./static/img/favicon.ico' type=
+    'image/x-icon'>
+
+    <title>Minecraft Elevator Control with Lua and ComputerCraft</title>
+</head>
+<header>
+    <a href="index.html">My Lil Website</a>
+</header>
+<main>
+    <h2>Minecraft Elevator Control with Lua and ComputerCraft</h2>
+    <div class="date">
+        2022-05-29
+    </div>
+    <div>
+        lua, minecraft, projects
+    </div>
+    <article>
+        <p>
+    Why Minecraft? You may think of it as a simple blocky survival
+    game, but to me it's an engineering puzzle sandbox. With the right
+    selection of mods, you can do some amazing things in it. Today I'll show
+    you how I built an elevator using a few computers and a simulated pulley!
+</p>
+
+<h3> Some background </h3>
+
+<figure>
+<video src="../static/mcelevator/machinery.webm" loop autoplay >Uh oh, your browser is old! (Or something else went wrong)</video>
+<figcaption>The machinery driving today's project.</figcaption>
+</figure>
+
+<p>
+    This idea came to me as I explored the Create mod more deeply.
+    Using the pulley, it's possible to make a moving platform controlled
+    using redstone, Minecraft's digital circuitry mechanic. After building
+    a very simple elevator using it, I thought it'd be fun to automate it properly.
+</p>
+
+<figure>
+<img src="../static/mcelevator/1.png" alt="The machinery driving everything">
+<figcaption>Cogs in the machine.</figcaption>
+</figure>
+
+<p>
+    The first attempt just switched the direction, making it move up and down,
+    and I didn't do much else with it until I remembered about ComputerCraft.
+    With it, I can make Lua virtual machines that can interact with the in-game world.
+</p>
+
+<figure>
+<img src="../static/mcelevator/2.png" alt="ComputerCraft computer">
+<figcaption>A typical Minecraft computer.</figcaption>
+</figure>
+
+<h3> Working prototype </h3>
+
+<p>
+    Because wiring up the moving parts is pretty much impossible,
+    I decided against a typical elevator setup, with the buttons on the inside.
+    Instead, I opted to put them on each floor.
+</p>
+
+<figure>
+    <img src="../static/mcelevator/3.png" alt="A row of buttons, labeled Floor B1, Floor 1, and Floor 2.">
+    <figcaption>The button setup I ended up with.</figcaption>
+</figure>
+
+<p>
+    My idea was thus: wire up the computer to all the buttons, and also put an
+    elevator sensor on each floor. On pressing the button, send the elevator to pick
+    up the player, then go to the requested floor. The elevator knows it's at the right floor
+    when the sensor gets triggered. Simple, right?
+</p>
+
+<p>
+    Well, there were some unexpected issues. First off, the wiring: I could
+    only receive the signals as a 16 bit bitmask, as that's what the cables allow,
+    with each bit corresponding to a single button or sensor. With N floors,
+    each floor would need N-1 buttons, plus the elevator sensor. That means
+    my system would support only 4 floors! Not only that, but during the testing,
+    people would come by my base pretty often. It's annoying when someone requests
+    the elevator, and their request would overwrite mine.
+</p>
+
+<h3> Final implementation </h3>
+
+<p>
+    While there were a few different ways around these issues, I thought the easiest would be
+    more computers! By having a separate computer (technically a coroutine) handling the input
+    on each floor, I simplified my code quite a bit. I no longer had to keep track of the bitmask
+    to sensor/button mapping in the controller. Instead, I could use the
+    <a href="https://tweaked.cc/module/colors.html">color standard</a>, with its built-in support
+    in ComputerCraft.
+</p>
+
+<figure>
+    <img src="../static/mcelevator/4.png" alt="The backside of the elevator buttons. Multicolored wires are connected to them.">
+    <figcaption>
+        The backside of the elevator buttons. Note the multicolored wires connected to them,
+        corresponding to the floors according to the color map. White is parsed as the first floor,
+        orange - second, magenta - third, etc.
+    </figcaption>
+</figure>
+
+<p>
+    Additionally, with each floor needing N-1 buttons, this system supports up to 17 floors!
+    With the Minecraft height limit being at 256 blocks, that seems more than enough. Though at
+    that point the button panels might be a bit too big.
+</p>
+
+<p>
+    I also implemented a queue for the destinations. This was fun, since I usually don't get to make
+    the data structures myself. Lua is pretty minimal, though, you don't get much by default.
+</p>
+<figure>
+<video src="../static/mcelevator/elevatordemo.webm" controls >Uh oh, your browser is old! (Or something else went wrong)</video>
+<figcaption>And finally, a working demo</figcaption>
+</figure>
+
+<h3> Limitations </h3>
+
+<p>
+    Of course, no project is ever completely finished. There's a few things that could still be addressed. The biggest being chunk loading.
+</p>
+
+<p>
+    Minecraft's terrain is separated in 16x16 chunks, with a variable amount being loaded at once depending on memory limitations.
+    That means that moving far enough away from a chunk causes it to unload, also destroying any Lua coroutines currently running in a computer.
+    Since the current floor and destination queue are stored in memory, that means the elevator forgets where it is! Fixing this wouldn't be
+    too hard, it only needs to write out the memory to disk every so often. But it's only a small annoyance, since the elevator resets its
+    position on reload.
+</p>
+
+<p>
+    This was a pretty small project, but I enjoyed it. I think writing this article took longer! The program is up on <a href="https://github.com/pvdosev/cc-elevator">Github</a>,
+    if you'd like to try it for yourself.
+</p>
+
+    </article>
+</main>

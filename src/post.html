@@ -1,0 +1,27 @@
+{# -*- engine:jinja2 -*- #}
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content=
+    "width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="./static/styles/main.css">
+    <link rel='icon' href='./static/img/favicon.ico' type=
+    'image/x-icon'>
+
+    <title>{{post.name}}</title>
+</head>
+<header>
+    <a href="index.html">My Lil Website</a>
+</header>
+<main>
+    <h2>{{ post.name }}</h2>
+    <div class="date">
+        {{post.date}}
+    </div>
+    <div>
+        {{post.tags}}
+    </div>
+    <article>
+        {{post.text | safe}}
+    </article>
+</main>

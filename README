@@ -1,0 +1,3 @@
+# A small website with a page generator
+
+Requires `jinja2`

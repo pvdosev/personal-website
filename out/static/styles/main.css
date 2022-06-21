@@ -1,0 +1,71 @@
+@font-face {
+  font-family: "Atlantis Headline";
+  src: url("fonts/atlantisheadline-bold-webfont.woff2") format('woff2'),
+       url("fonts/atlantisheadline-bold-webfont.woff") format('woff');
+    font-weight: normal;
+    font-style:  normal;
+}
+
+@font-face {
+  font-family: "Atlantis";
+  src: url("fonts/atlantistext-bold-webfont.woff2") format('woff2'),
+       url("fonts/atlantistext-bold-webfont.woff") format('woff');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+ font-family: "Atlantis";
+  src: url("fonts/atlantistext-regular-webfont.woff2") format('woff2'),
+       url("fonts/atlantistext-regular-webfont.woff") format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+ font-family: "Atlantis Smallcaps";
+  src: url("fonts/atlantis-regularsmallcaps-webfont.woff2") format('woff2'),
+       url("fonts/atlantis-regularsmallcaps-webfont.woff") format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+body {
+    image-rendering: pixelated;
+    background-color: #3a2130;
+    /*background-image: url("../img/stones.png");*/
+    width: auto; 
+    overflow-x: hidden;
+    font-family: "Atlantis", normal;
+    margin: 0px;
+    color: #DDD184;
+}
+
+/* nothing better than a lazy afternoon
+ * go take a nap, if you have the time! */
+
+body > * {
+    font-size: 1.4rem;
+}
+
+h1, h2, h3 { font-family: "Atlantis Headline"; color: ##99bdba; margin: auto; word-spacing: .5em; }
+.banner { padding: 1em }
+.articleLink {
+    text-decoration: none;
+    color: #99bdba;
+}
+
+article {
+    padding: 3em;
+    padding-right: 30%;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.readMore {
+    text-decoration: underline;
+}
