@@ -5,25 +5,30 @@
     <meta name="viewport" content=
     "width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta property="og:url" content="https://pdosev.com/">
-    <!--link rel="stylesheet" href="./static/styles/main.css"-->
+    <link rel="stylesheet" href="./static/styles/main.css">
     <link rel='icon' href='./static/img/favicon.ico' type=
     'image/x-icon'>
     <title>Portfolio!</title>
 </head>
-<header>
+{# <header>
     <a href="/about">About Me</a>
-</header>
+</header> #}
 <main>
-    <h1>Here's some stuff I've made:</h1>
+    <h1 class="banner">Here's some stuff I've made:</h1>
     {% for post in posts%}
-    <a href="./{{post.pathName}}.html">
-    <h2>{{ post.name }}</h2>
-    <div class="date">
-        {{post.date}}
-    </div>
-    <article>
-        {{post.blurb}}
-    </article>
-    Read more...</a>
+        <article>
+            <a class="articleLink" href="./{{post.pathName}}.html">
+                <h2>{{ post.name }}</h2>
+                <div class="date">
+                    {{post.date}}
+                </div>
+
+                <div class="blurb">
+                    {{post.blurb}}
+                </div>
+
+                <span class="readMore">Read more...</span>
+            </a>
+        </article>
     {% endfor %}
 </main>
