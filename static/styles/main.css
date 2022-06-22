@@ -30,6 +30,14 @@
     font-style: normal;
 }
 
+@font-face {
+ font-family: "Super Legend Boy";
+  src: url("fonts/superlegendboy-4w8y-webfont.woff2") format('woff2'),
+       url("fonts/superlegendboy-4w8y-webfont.woff") format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
 
 body {
     image-rendering: pixelated;
@@ -37,8 +45,8 @@ body {
     /*background-image: url("../img/stones.png");*/
     width: auto; 
     overflow-x: hidden;
-    font-family: "Atlantis", normal;
-    margin: 0px;
+    font-family: "Super Legend Boy", normal;
+    margin: 0 auto;
     color: #DDD184;
 }
 
@@ -56,13 +64,21 @@ h1, h2, h3 { font-family: "Atlantis Headline"; color: ##99bdba; margin: auto; wo
     color: #99bdba;
 }
 
-article {
-    padding: 3em;
-    padding-right: 30%;
+main > * {
+    padding: 1em;
+    margin: 0 auto;
+    display: block;
 }
 
-img {
-    max-width: 100%;
+article, article p {
+    padding: 1.5em;
+    padding-right: 30%;
+    line-height: 1.6;
+    font-size: 1em;
+}
+
+figure, figure video, figure img {
+    max-width: 80%;
     height: auto;
 }
 
