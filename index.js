@@ -75,8 +75,9 @@ class Orbit {
   handleStart(event) {
     this.eventCache.set(event.pointerId, event);
     if (this.eventCache.size === 2) {
-      const event1 = this.eventCache.get(0);
-      const event2 = this.eventCache.get(1);
+      const events = this.eventCache.values();
+      const event1 = events.next().value;
+      const event2 = events.next().value;
       this.pinchZoomDist = euclideanDist(event1.pageX, event1.pageY, event2.pageX, event2.pageY);
     }
   }
@@ -90,8 +91,9 @@ class Orbit {
       this.eventCache.set(event.pointerId, event);
     }
     if (this.eventCache.size === 2) {
-      const event1 = this.eventCache.get(0);
-      const event2 = this.eventCache.get(1);
+      const events = this.eventCache.values();
+      const event1 = events.next().value;
+      const event2 = events.next().value;
       const currZoom = euclideanDist(event1.pageX, event1.pageY, event2.pageX, event2.pageY);
       this.transforms.translation[2] =
         this.transforms.translation[2] + (this.pinchZoomDist - currZoom) * .01;
