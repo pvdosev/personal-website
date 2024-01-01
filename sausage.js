@@ -4883,6 +4883,73 @@ var SkyBox = class extends Mesh {
   }
 };
 
+// shaders/physDebug.vert
+var physDebug_default = "#version 300 es\nin vec3 position;\nin vec4 color;\n\nuniform mat4 projectionMatrix;\nuniform mat4 modelViewMatrix;\n\nout vec4 vColor;\n\nvoid main() {\n    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n    vColor = color;\n}\n";
+
+// shaders/physDebug.frag
+var physDebug_default2 = "#version 300 es\nprecision highp float;\n\nin vec4 vColor;\n\nout vec4 outColor;\n\nvoid main() {\n    outColor = vColor;\n}\n";
+
+// physdebug.js
+var PhysDebugMesh = class extends Mesh {
+  constructor(gl, world, scene) {
+    const program = new Program(gl, {
+      vertex: physDebug_default,
+      fragment: physDebug_default2
+    });
+    const renderData = world.debugRender();
+    const attrs = {
+      position: {
+        size: 3,
+        usage: gl.STREAM_DRAW,
+        data: renderData.vertices
+      },
+      color: {
+        size: 4,
+        usage: gl.STREAM_DRAW,
+        data: renderData.colors
+      }
+    };
+    const geom = new Geometry(gl, attrs);
+    super(gl, { geometry: geom, program, mode: gl.LINES });
+    this.attrs = attrs;
+    this.world = world;
+    this.geometry = geom;
+    this.bufLen = renderData.vertices.length;
+    this.gl = gl;
+    this.scene = scene;
+    this.enabled = false;
+  }
+  updateBuffers() {
+    const newBuf = this.world.debugRender();
+    this.attrs.position.data = newBuf.vertices;
+    this.attrs.color.data = newBuf.colors;
+    if (newBuf.vertices.length !== this.bufLen) {
+      if (newBuf.vertices.length > this.bufLen) {
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.attrs.position.buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, newBuf.vertices, this.gl.STREAM_DRAW);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.attrs.color.buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, newBuf.colors, this.gl.STREAM_DRAW);
+        this.gl.renderer.state.boundBuffer = this.attrs.color.buffer;
+      }
+      this.attrs.position.count = newBuf.vertices.length / 3;
+      this.attrs.color.count = newBuf.colors.length / 4;
+      this.geometry.drawRange.count = newBuf.vertices.length / 3;
+    }
+    this.bufLen = newBuf.vertices.length;
+    this.geometry.updateAttribute(this.attrs.position);
+    this.geometry.updateAttribute(this.attrs.color);
+  }
+  toggle() {
+    if (this.enabled) {
+      this.enabled = false;
+      this.setParent(null);
+    } else {
+      this.enabled = true;
+      this.setParent(this.scene);
+    }
+  }
+};
+
 // abstract.js
 var MessageBus = class {
   constructor() {
@@ -11692,6 +11759,132 @@ var RevoluteImpulseJoint = class extends UnitImpulseJoint {
 };
 var SphericalImpulseJoint = class extends ImpulseJoint {
 };
+var JointData = class _JointData {
+  constructor() {
+  }
+  /**
+   * Creates a new joint descriptor that builds a Fixed joint.
+   *
+   * A fixed joint removes all the degrees of freedom between the affected bodies, ensuring their
+   * anchor and local frames coincide in world-space.
+   *
+   * @param anchor1 - Point where the joint is attached on the first rigid-body affected by this joint. Expressed in the
+   *                  local-space of the rigid-body.
+   * @param frame1 - The reference orientation of the joint wrt. the first rigid-body.
+   * @param anchor2 - Point where the joint is attached on the second rigid-body affected by this joint. Expressed in the
+   *                  local-space of the rigid-body.
+   * @param frame2 - The reference orientation of the joint wrt. the second rigid-body.
+   */
+  static fixed(anchor1, frame1, anchor2, frame2) {
+    let res = new _JointData();
+    res.anchor1 = anchor1;
+    res.anchor2 = anchor2;
+    res.frame1 = frame1;
+    res.frame2 = frame2;
+    res.jointType = JointType.Fixed;
+    return res;
+  }
+  // #if DIM3
+  /**
+   * Create a new joint descriptor that builds spherical joints.
+   *
+   * A spherical joint allows three relative rotational degrees of freedom
+   * by preventing any relative translation between the anchors of the
+   * two attached rigid-bodies.
+   *
+   * @param anchor1 - Point where the joint is attached on the first rigid-body affected by this joint. Expressed in the
+   *                  local-space of the rigid-body.
+   * @param anchor2 - Point where the joint is attached on the second rigid-body affected by this joint. Expressed in the
+   *                  local-space of the rigid-body.
+   */
+  static spherical(anchor1, anchor2) {
+    let res = new _JointData();
+    res.anchor1 = anchor1;
+    res.anchor2 = anchor2;
+    res.jointType = JointType.Spherical;
+    return res;
+  }
+  /**
+   * Creates a new joint descriptor that builds a Prismatic joint.
+   *
+   * A prismatic joint removes all the degrees of freedom between the
+   * affected bodies, except for the translation along one axis.
+   *
+   * @param anchor1 - Point where the joint is attached on the first rigid-body affected by this joint. Expressed in the
+   *                  local-space of the rigid-body.
+   * @param anchor2 - Point where the joint is attached on the second rigid-body affected by this joint. Expressed in the
+   *                  local-space of the rigid-body.
+   * @param axis - Axis of the joint, expressed in the local-space of the rigid-bodies it is attached to.
+   */
+  static prismatic(anchor1, anchor2, axis) {
+    let res = new _JointData();
+    res.anchor1 = anchor1;
+    res.anchor2 = anchor2;
+    res.axis = axis;
+    res.jointType = JointType.Prismatic;
+    return res;
+  }
+  /**
+   * Create a new joint descriptor that builds Revolute joints.
+   *
+   * A revolute joint removes all degrees of freedom between the affected
+   * bodies except for the rotation along one axis.
+   *
+   * @param anchor1 - Point where the joint is attached on the first rigid-body affected by this joint. Expressed in the
+   *                  local-space of the rigid-body.
+   * @param anchor2 - Point where the joint is attached on the second rigid-body affected by this joint. Expressed in the
+   *                  local-space of the rigid-body.
+   * @param axis - Axis of the joint, expressed in the local-space of the rigid-bodies it is attached to.
+   */
+  static revolute(anchor1, anchor2, axis) {
+    let res = new _JointData();
+    res.anchor1 = anchor1;
+    res.anchor2 = anchor2;
+    res.axis = axis;
+    res.jointType = JointType.Revolute;
+    return res;
+  }
+  // #endif
+  intoRaw() {
+    let rawA1 = VectorOps.intoRaw(this.anchor1);
+    let rawA2 = VectorOps.intoRaw(this.anchor2);
+    let rawAx;
+    let result;
+    let limitsEnabled = false;
+    let limitsMin = 0;
+    let limitsMax = 0;
+    switch (this.jointType) {
+      case JointType.Fixed:
+        let rawFra1 = RotationOps.intoRaw(this.frame1);
+        let rawFra2 = RotationOps.intoRaw(this.frame2);
+        result = RawGenericJoint.fixed(rawA1, rawFra1, rawA2, rawFra2);
+        rawFra1.free();
+        rawFra2.free();
+        break;
+      case JointType.Prismatic:
+        rawAx = VectorOps.intoRaw(this.axis);
+        if (!!this.limitsEnabled) {
+          limitsEnabled = true;
+          limitsMin = this.limits[0];
+          limitsMax = this.limits[1];
+        }
+        result = RawGenericJoint.prismatic(rawA1, rawA2, rawAx, limitsEnabled, limitsMin, limitsMax);
+        rawAx.free();
+        break;
+      case JointType.Spherical:
+        result = RawGenericJoint.spherical(rawA1, rawA2);
+        break;
+      case JointType.Revolute:
+        rawAx = VectorOps.intoRaw(this.axis);
+        result = RawGenericJoint.revolute(rawA1, rawA2, rawAx);
+        rawAx.free();
+        break;
+    }
+    rawA1.free();
+    rawA2.free();
+    return result;
+  }
+};
 
 // node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/dynamics/impulse_joint_set.js
 var ImpulseJointSet = class {
@@ -15389,6 +15582,9 @@ var skin_default = "#version 300 es\nin vec3 position;\nin vec3 normal;\nin vec2
 var skin_default2 = "#version 300 es\nprecision highp float;\n\nuniform sampler2D tMap;\nuniform sampler2D boneTexture;\n\nin vec2 vUv;\nin vec3 vNormal;\nout vec4 outColor;\n\nvoid main() {\n    // vec3 tex = texture2D(tMap, vUv).rgb;\n\n    // vec3 normal = normalize(vNormal);\n    // vec3 light = vec3(0.0, 1.0, 0.0);\n    // float shading = min(0.0, dot(normal, light) * 0.2);\n\n    // outColor.rgb = tex + shading;\n    // outColor.a = 1.0;\n    outColor.rgb = texture(tMap, vUv).rgb;\n    outColor.a = 1.0;\n}\n";
 
 // index.js
+function shallowClone(obj) {
+  return Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyDescriptors(obj));
+}
 function init() {
   const canvasElem = document.querySelector("#renderCanvas");
   const renderer = new Renderer({ dpr: 1, canvas: canvasElem, antialias: true });
@@ -15411,7 +15607,7 @@ function init() {
   const lightFalloff = [1, 0.5, 1];
   const lightPenumbra = [];
   const lightUmbra = [];
-  const program = new Program(gl, {
+  const mainProgram = new Program(gl, {
     vertex: main_default,
     fragment: main_default2,
     uniforms: {
@@ -15437,10 +15633,10 @@ function init() {
     });
   }
   const sphereGeom = new Sphere(gl);
-  const rigidBodyDesc = RigidBodyDesc.dynamic().setTranslation(0, 1, 0);
+  const rigidBodyDesc = new RigidBodyDesc(RigidBodyType.Dynamic).setTranslation(0, 1, 0);
   function makeBall(position) {
     const ball = {};
-    ball.mesh = new Mesh(gl, { geometry: sphereGeom, program });
+    ball.mesh = new Mesh(gl, { geometry: sphereGeom, program: mainProgram });
     ball.mesh.setParent(scene);
     ball.body = physics.world.createRigidBody(rigidBodyDesc);
     ball.coll = physics.world.createCollider(ColliderDesc.ball(0.5), ball.body);
@@ -15451,6 +15647,76 @@ function init() {
   const scene = new Transform();
   const skybox = new SkyBox(gl);
   skybox.setParent(scene);
+  const debugMesh = new PhysDebugMesh(gl, physics.world, scene);
+  function makeCapsule(x, y, z, length4, radius) {
+    const collDesc = new ColliderDesc(new Capsule(length4, radius));
+    const bodyDesc = new RigidBodyDesc(RigidBodyType.Dynamic).setTranslation(x, y, z);
+    const body = physics.world.createRigidBody(bodyDesc);
+    return {
+      body,
+      coll: physics.world.createCollider(collDesc, body)
+    };
+  }
+  function makeJoint(anchor1, anchor2, body1, body2) {
+    const params = JointData.spherical(anchor1, anchor2);
+    const joint = physics.world.createImpulseJoint(params, body1, body2, true);
+    joint.setContactsEnabled(false);
+    return joint;
+  }
+  let skin;
+  loadAssets();
+  async function loadAssets() {
+    const gltf = await GLTFLoader.load(gl, `sausage.glb`);
+    console.log(gltf);
+    const s = gltf.scene || gltf.scenes[0];
+    s.forEach((root) => {
+      root.traverse((node) => {
+        if (node.program) {
+          if (node instanceof GLTFSkin) {
+            node.program = makeSkinProgram(node);
+            skin = node;
+          } else
+            node.program = mainProgram;
+        }
+      });
+    });
+  }
+  function makeSausage(position) {
+    const sausageParent = new Transform();
+    const newSkel = {
+      joints: [],
+      inverseBindMatrices: shallowClone(skin.skeleton.inverseBindMatrices)
+    };
+    for (const bone of skin.skeleton.joints) {
+      const newBone = new Transform();
+      newBone.matrix.copy(bone.matrix);
+      newBone.decompose();
+      newBone.scale.set(0.1);
+      newBone.bindInverse = shallowClone(bone.bindInverse);
+      newBone.setParent(sausageParent);
+      newSkel.joints.push(newBone);
+    }
+    const newSkin = new GLTFSkin(gl, {
+      skeleton: newSkel,
+      program: skin.program,
+      geometry: skin.geometry
+    });
+    newSkin.setParent(sausageParent);
+    console.log(newSkin, newSkel);
+    sausageParent.setParent(scene);
+    const s1 = makeCapsule(position.x, position.y + 0.9, position.z, 0.03, 0.215);
+    const s2 = makeCapsule(position.x, position.y + 0.6, position.z, 0.03, 0.215);
+    const s3 = makeCapsule(position.x, position.y + 0.3, position.z, 0.03, 0.215);
+    const s4 = makeCapsule(position.x, position.y, position.z, 0.03, 0.215);
+    physics.bodyToTransform.set(s1.body.handle, newSkel.joints[0]);
+    physics.bodyToTransform.set(s2.body.handle, newSkel.joints[1]);
+    physics.bodyToTransform.set(s3.body.handle, newSkel.joints[2]);
+    physics.bodyToTransform.set(s4.body.handle, newSkel.joints[3]);
+    makeJoint({ x: 0, y: 0.15, z: 0 }, { x: 0, y: -0.15, z: 0 }, s1.body, s2.body);
+    makeJoint({ x: 0, y: 0.15, z: 0 }, { x: 0, y: -0.15, z: 0 }, s2.body, s3.body);
+    makeJoint({ x: 0, y: 0.15, z: 0 }, { x: 0, y: -0.15, z: 0 }, s3.body, s4.body);
+    return sausageParent;
+  }
   const balls = [];
   canvasElem.addEventListener("pointerdown", (e) => {
     const clipSpaceX = 2 * (e.x / renderer.width) - 1;
@@ -15465,31 +15731,9 @@ function init() {
       const hitVec = new Vec3(hitPoint.x, hitPoint.y, hitPoint.z);
       const normal = new Vec3(hit.normal.x, hit.normal.y, hit.normal.z);
       hitVec.add(normal.scale(0.5));
-      balls.push(makeBall(hitVec));
-      console.log(hitVec);
+      balls.push(makeSausage(hitVec));
     }
   });
-  let skin;
-  loadAssets();
-  async function loadAssets() {
-    const gltf = await GLTFLoader.load(gl, `sausage.glb`);
-    console.log(gltf);
-    const s = gltf.scene || gltf.scenes[0];
-    s.forEach((root) => {
-      root.traverse((node) => {
-        if (node.name === "sausage_skel")
-          node.setParent(scene);
-        if (node.program) {
-          if (node instanceof GLTFSkin) {
-            node.program = makeSkinProgram(node);
-            skin = node;
-          } else
-            node.program = program;
-        }
-      });
-    });
-    console.log("scene: ", scene);
-  }
   let paused = false;
   let requestID;
   makeButtonInList("Pause", "buttonList", () => {
@@ -15501,6 +15745,9 @@ function init() {
       paused = true;
     }
   });
+  makeButtonInList("Show/Hide Colliders", "buttonList", () => {
+    debugMesh.toggle();
+  });
   let startTime, lastTime;
   requestID = requestAnimationFrame(update);
   function update(time) {
@@ -15508,12 +15755,9 @@ function init() {
       startTime = time;
     }
     const totalTime = time - startTime;
-    if (skin) {
-      for (const bone of skin.skeleton.joints) {
-        bone.position.y += Math.sin(totalTime / 1e3 + bone.position.x * 2) / 100;
-      }
-    }
     physics.update();
+    if (debugMesh.enabled)
+      debugMesh.updateBuffers();
     controls.update();
     renderer.render({ scene, camera, sort: false, frustumCull: false });
     requestID = requestAnimationFrame(update);
