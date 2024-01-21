@@ -4917,7 +4917,8 @@ var PhysDebugMesh = class extends Mesh {
     this.bufLen = renderData.vertices.length;
     this.gl = gl;
     this.scene = scene;
-    this.enabled = false;
+    this.enabled = true;
+    this.setParent(this.scene);
   }
   updateBuffers() {
     const newBuf = this.world.debugRender();
@@ -4973,18 +4974,26 @@ var MessageBus = class {
   }
 };
 
-// wasm-deferred:/home/albatross/src/ballphys/node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/rapier_wasm3d_bg.wasm
-var rapier_wasm3d_bg_default = "./rapier_wasm3d_bg-YZOV23FK.wasm";
+// wasm-deferred:/home/albatross/src/rapier.js/rapier3d/pkg/rapier_wasm3d_bg.wasm
+var rapier_wasm3d_bg_default = "./rapier_wasm3d_bg-VOUMVYKJ.wasm";
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/rapier_wasm3d_bg.js
-var heap = new Array(32).fill(void 0);
+// ../rapier.js/rapier3d/pkg/rapier_wasm3d_bg.js
+var heap = new Array(128).fill(void 0);
 heap.push(void 0, null, true, false);
+var heap_next = heap.length;
+function addHeapObject(obj) {
+  if (heap_next === heap.length)
+    heap.push(heap.length + 1);
+  const idx = heap_next;
+  heap_next = heap[idx];
+  heap[idx] = obj;
+  return idx;
+}
 function getObject(idx) {
   return heap[idx];
 }
-var heap_next = heap.length;
 function dropObject(idx) {
-  if (idx < 36)
+  if (idx < 132)
     return;
   heap[idx] = heap_next;
   heap_next = idx;
@@ -4994,27 +5003,19 @@ function takeObject(idx) {
   dropObject(idx);
   return ret;
 }
-function addHeapObject(obj) {
-  if (heap_next === heap.length)
-    heap.push(heap.length + 1);
-  const idx = heap_next;
-  heap_next = heap[idx];
-  heap[idx] = obj;
-  return idx;
-}
 function isLikeNone(x) {
   return x === void 0 || x === null;
 }
-var cachedFloat64Memory0 = new Float64Array();
+var cachedFloat64Memory0 = null;
 function getFloat64Memory0() {
-  if (cachedFloat64Memory0.byteLength === 0) {
+  if (cachedFloat64Memory0 === null || cachedFloat64Memory0.byteLength === 0) {
     cachedFloat64Memory0 = new Float64Array(memory.buffer);
   }
   return cachedFloat64Memory0;
 }
-var cachedInt32Memory0 = new Int32Array();
+var cachedInt32Memory0 = null;
 function getInt32Memory0() {
-  if (cachedInt32Memory0.byteLength === 0) {
+  if (cachedInt32Memory0 === null || cachedInt32Memory0.byteLength === 0) {
     cachedInt32Memory0 = new Int32Array(memory.buffer);
   }
   return cachedInt32Memory0;
@@ -5022,14 +5023,15 @@ function getInt32Memory0() {
 var lTextDecoder = typeof TextDecoder === "undefined" ? (0, module.require)("util").TextDecoder : TextDecoder;
 var cachedTextDecoder = new lTextDecoder("utf-8", { ignoreBOM: true, fatal: true });
 cachedTextDecoder.decode();
-var cachedUint8Memory0 = new Uint8Array();
+var cachedUint8Memory0 = null;
 function getUint8Memory0() {
-  if (cachedUint8Memory0.byteLength === 0) {
+  if (cachedUint8Memory0 === null || cachedUint8Memory0.byteLength === 0) {
     cachedUint8Memory0 = new Uint8Array(memory.buffer);
   }
   return cachedUint8Memory0;
 }
 function getStringFromWasm0(ptr, len) {
+  ptr = ptr >>> 0;
   return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 function _assertClass(instance2, klass) {
@@ -5038,14 +5040,14 @@ function _assertClass(instance2, klass) {
   }
   return instance2.ptr;
 }
-var cachedFloat32Memory0 = new Float32Array();
+var cachedFloat32Memory0 = null;
 function getFloat32Memory0() {
-  if (cachedFloat32Memory0.byteLength === 0) {
+  if (cachedFloat32Memory0 === null || cachedFloat32Memory0.byteLength === 0) {
     cachedFloat32Memory0 = new Float32Array(memory.buffer);
   }
   return cachedFloat32Memory0;
 }
-var stack_pointer = 32;
+var stack_pointer = 128;
 function addBorrowedObject(obj) {
   if (stack_pointer == 1)
     throw new Error("out of js stack");
@@ -5053,27 +5055,29 @@ function addBorrowedObject(obj) {
   return stack_pointer;
 }
 function getArrayF32FromWasm0(ptr, len) {
+  ptr = ptr >>> 0;
   return getFloat32Memory0().subarray(ptr / 4, ptr / 4 + len);
 }
-var cachedUint32Memory0 = new Uint32Array();
+var cachedUint32Memory0 = null;
 function getUint32Memory0() {
-  if (cachedUint32Memory0.byteLength === 0) {
+  if (cachedUint32Memory0 === null || cachedUint32Memory0.byteLength === 0) {
     cachedUint32Memory0 = new Uint32Array(memory.buffer);
   }
   return cachedUint32Memory0;
 }
 function getArrayU32FromWasm0(ptr, len) {
+  ptr = ptr >>> 0;
   return getUint32Memory0().subarray(ptr / 4, ptr / 4 + len);
 }
 var WASM_VECTOR_LEN = 0;
 function passArrayF32ToWasm0(arg, malloc) {
-  const ptr = malloc(arg.length * 4);
+  const ptr = malloc(arg.length * 4, 4) >>> 0;
   getFloat32Memory0().set(arg, ptr / 4);
   WASM_VECTOR_LEN = arg.length;
   return ptr;
 }
 function passArray32ToWasm0(arg, malloc) {
-  const ptr = malloc(arg.length * 4);
+  const ptr = malloc(arg.length * 4, 4) >>> 0;
   getUint32Memory0().set(arg, ptr / 4);
   WASM_VECTOR_LEN = arg.length;
   return ptr;
@@ -5093,13 +5097,14 @@ var RawFeatureType = Object.freeze({ Vertex: 0, "0": "Vertex", Edge: 1, "1": "Ed
 var RawShapeType = Object.freeze({ Ball: 0, "0": "Ball", Cuboid: 1, "1": "Cuboid", Capsule: 2, "2": "Capsule", Segment: 3, "3": "Segment", Polyline: 4, "4": "Polyline", Triangle: 5, "5": "Triangle", TriMesh: 6, "6": "TriMesh", HeightField: 7, "7": "HeightField", Compound: 8, "8": "Compound", ConvexPolyhedron: 9, "9": "ConvexPolyhedron", Cylinder: 10, "10": "Cylinder", Cone: 11, "11": "Cone", RoundCuboid: 12, "12": "RoundCuboid", RoundTriangle: 13, "13": "RoundTriangle", RoundCylinder: 14, "14": "RoundCylinder", RoundCone: 15, "15": "RoundCone", RoundConvexPolyhedron: 16, "16": "RoundConvexPolyhedron", HalfSpace: 17, "17": "HalfSpace" });
 var RawBroadPhase = class _RawBroadPhase {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawBroadPhase.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -5115,13 +5120,14 @@ var RawBroadPhase = class _RawBroadPhase {
 };
 var RawCCDSolver = class _RawCCDSolver {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawCCDSolver.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -5137,13 +5143,14 @@ var RawCCDSolver = class _RawCCDSolver {
 };
 var RawCharacterCollision = class _RawCharacterCollision {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawCharacterCollision.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -5160,68 +5167,69 @@ var RawCharacterCollision = class _RawCharacterCollision {
   * @returns {number}
   */
   handle() {
-    const ret = rawcharactercollision_handle(this.ptr);
+    const ret = rawcharactercollision_handle(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {RawVector}
   */
-  translationApplied() {
-    const ret = rawcharactercollision_translationApplied(this.ptr);
+  translationDeltaApplied() {
+    const ret = rawcharactercollision_translationDeltaApplied(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
-  translationRemaining() {
-    const ret = rawcharactercollision_translationRemaining(this.ptr);
+  translationDeltaRemaining() {
+    const ret = rawcharactercollision_translationDeltaRemaining(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {number}
   */
   toi() {
-    const ret = rawcharactercollision_toi(this.ptr);
+    const ret = rawcharactercollision_toi(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {RawVector}
   */
   worldWitness1() {
-    const ret = rawcharactercollision_worldWitness1(this.ptr);
+    const ret = rawcharactercollision_worldWitness1(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   worldWitness2() {
-    const ret = rawcharactercollision_worldWitness2(this.ptr);
+    const ret = rawcharactercollision_worldWitness2(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   worldNormal1() {
-    const ret = rawcharactercollision_worldNormal1(this.ptr);
+    const ret = rawcharactercollision_worldNormal1(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   worldNormal2() {
-    const ret = rawcharactercollision_worldNormal2(this.ptr);
+    const ret = rawcharactercollision_worldNormal2(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
 };
 var RawColliderSet = class _RawColliderSet {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawColliderSet.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -5234,7 +5242,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {RawVector}
   */
   coTranslation(handle) {
-    const ret = rawcolliderset_coTranslation(this.ptr, handle);
+    const ret = rawcolliderset_coTranslation(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -5243,7 +5251,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {RawRotation}
   */
   coRotation(handle) {
-    const ret = rawcolliderset_coRotation(this.ptr, handle);
+    const ret = rawcolliderset_coRotation(this.__wbg_ptr, handle);
     return RawRotation.__wrap(ret);
   }
   /**
@@ -5261,7 +5269,7 @@ var RawColliderSet = class _RawColliderSet {
   * @param {number} z
   */
   coSetTranslation(handle, x, y, z) {
-    rawcolliderset_coSetTranslation(this.ptr, handle, x, y, z);
+    rawcolliderset_coSetTranslation(this.__wbg_ptr, handle, x, y, z);
   }
   /**
   * @param {number} handle
@@ -5270,7 +5278,7 @@ var RawColliderSet = class _RawColliderSet {
   * @param {number} z
   */
   coSetTranslationWrtParent(handle, x, y, z) {
-    rawcolliderset_coSetTranslationWrtParent(this.ptr, handle, x, y, z);
+    rawcolliderset_coSetTranslationWrtParent(this.__wbg_ptr, handle, x, y, z);
   }
   /**
   * Sets the rotation quaternion of this collider.
@@ -5291,7 +5299,7 @@ var RawColliderSet = class _RawColliderSet {
   * @param {number} w
   */
   coSetRotation(handle, x, y, z, w) {
-    rawcolliderset_coSetRotation(this.ptr, handle, x, y, z, w);
+    rawcolliderset_coSetRotation(this.__wbg_ptr, handle, x, y, z, w);
   }
   /**
   * @param {number} handle
@@ -5301,7 +5309,7 @@ var RawColliderSet = class _RawColliderSet {
   * @param {number} w
   */
   coSetRotationWrtParent(handle, x, y, z, w) {
-    rawcolliderset_coSetRotationWrtParent(this.ptr, handle, x, y, z, w);
+    rawcolliderset_coSetRotationWrtParent(this.__wbg_ptr, handle, x, y, z, w);
   }
   /**
   * Is this collider a sensor?
@@ -5309,7 +5317,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {boolean}
   */
   coIsSensor(handle) {
-    const ret = rawcolliderset_coIsSensor(this.ptr, handle);
+    const ret = rawcolliderset_coIsSensor(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -5318,7 +5326,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coShapeType(handle) {
-    const ret = rawcolliderset_coShapeType(this.ptr, handle);
+    const ret = rawcolliderset_coShapeType(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -5326,7 +5334,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {RawVector | undefined}
   */
   coHalfspaceNormal(handle) {
-    const ret = rawcolliderset_coHalfspaceNormal(this.ptr, handle);
+    const ret = rawcolliderset_coHalfspaceNormal(this.__wbg_ptr, handle);
     return ret === 0 ? void 0 : RawVector.__wrap(ret);
   }
   /**
@@ -5335,7 +5343,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {RawVector | undefined}
   */
   coHalfExtents(handle) {
-    const ret = rawcolliderset_coHalfExtents(this.ptr, handle);
+    const ret = rawcolliderset_coHalfExtents(this.__wbg_ptr, handle);
     return ret === 0 ? void 0 : RawVector.__wrap(ret);
   }
   /**
@@ -5345,7 +5353,7 @@ var RawColliderSet = class _RawColliderSet {
   */
   coSetHalfExtents(handle, newHalfExtents) {
     _assertClass(newHalfExtents, RawVector);
-    rawcolliderset_coSetHalfExtents(this.ptr, handle, newHalfExtents.ptr);
+    rawcolliderset_coSetHalfExtents(this.__wbg_ptr, handle, newHalfExtents.__wbg_ptr);
   }
   /**
   * The radius of this collider if it is a ball, capsule, cylinder, or cone shape.
@@ -5355,7 +5363,7 @@ var RawColliderSet = class _RawColliderSet {
   coRadius(handle) {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawcolliderset_coRadius(retptr, this.ptr, handle);
+      rawcolliderset_coRadius(retptr, this.__wbg_ptr, handle);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getFloat32Memory0()[retptr / 4 + 1];
       return r0 === 0 ? void 0 : r1;
@@ -5369,7 +5377,7 @@ var RawColliderSet = class _RawColliderSet {
   * @param {number} newRadius
   */
   coSetRadius(handle, newRadius) {
-    rawcolliderset_coSetRadius(this.ptr, handle, newRadius);
+    rawcolliderset_coSetRadius(this.__wbg_ptr, handle, newRadius);
   }
   /**
   * The half height of this collider if it is a capsule, cylinder, or cone shape.
@@ -5379,7 +5387,7 @@ var RawColliderSet = class _RawColliderSet {
   coHalfHeight(handle) {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawcolliderset_coHalfHeight(retptr, this.ptr, handle);
+      rawcolliderset_coHalfHeight(retptr, this.__wbg_ptr, handle);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getFloat32Memory0()[retptr / 4 + 1];
       return r0 === 0 ? void 0 : r1;
@@ -5393,7 +5401,7 @@ var RawColliderSet = class _RawColliderSet {
   * @param {number} newHalfheight
   */
   coSetHalfHeight(handle, newHalfheight) {
-    rawcolliderset_coSetHalfHeight(this.ptr, handle, newHalfheight);
+    rawcolliderset_coSetHalfHeight(this.__wbg_ptr, handle, newHalfheight);
   }
   /**
   * The radius of the round edges of this collider.
@@ -5403,7 +5411,7 @@ var RawColliderSet = class _RawColliderSet {
   coRoundRadius(handle) {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawcolliderset_coRoundRadius(retptr, this.ptr, handle);
+      rawcolliderset_coRoundRadius(retptr, this.__wbg_ptr, handle);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getFloat32Memory0()[retptr / 4 + 1];
       return r0 === 0 ? void 0 : r1;
@@ -5417,7 +5425,7 @@ var RawColliderSet = class _RawColliderSet {
   * @param {number} newBorderRadius
   */
   coSetRoundRadius(handle, newBorderRadius) {
-    rawcolliderset_coSetRoundRadius(this.ptr, handle, newBorderRadius);
+    rawcolliderset_coSetRoundRadius(this.__wbg_ptr, handle, newBorderRadius);
   }
   /**
   * The vertices of this triangle mesh, polyline, convex polyhedron, segment, triangle or convex polyhedron, if it is one.
@@ -5427,15 +5435,15 @@ var RawColliderSet = class _RawColliderSet {
   coVertices(handle) {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawcolliderset_coVertices(retptr, this.ptr, handle);
+      rawcolliderset_coVertices(retptr, this.__wbg_ptr, handle);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
-      let v0;
+      let v1;
       if (r0 !== 0) {
-        v0 = getArrayF32FromWasm0(r0, r1).slice();
+        v1 = getArrayF32FromWasm0(r0, r1).slice();
         __wbindgen_free(r0, r1 * 4);
       }
-      return v0;
+      return v1;
     } finally {
       __wbindgen_add_to_stack_pointer(16);
     }
@@ -5448,15 +5456,15 @@ var RawColliderSet = class _RawColliderSet {
   coIndices(handle) {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawcolliderset_coIndices(retptr, this.ptr, handle);
+      rawcolliderset_coIndices(retptr, this.__wbg_ptr, handle);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
-      let v0;
+      let v1;
       if (r0 !== 0) {
-        v0 = getArrayU32FromWasm0(r0, r1).slice();
+        v1 = getArrayU32FromWasm0(r0, r1).slice();
         __wbindgen_free(r0, r1 * 4);
       }
-      return v0;
+      return v1;
     } finally {
       __wbindgen_add_to_stack_pointer(16);
     }
@@ -5469,15 +5477,15 @@ var RawColliderSet = class _RawColliderSet {
   coHeightfieldHeights(handle) {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawcolliderset_coHeightfieldHeights(retptr, this.ptr, handle);
+      rawcolliderset_coHeightfieldHeights(retptr, this.__wbg_ptr, handle);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
-      let v0;
+      let v1;
       if (r0 !== 0) {
-        v0 = getArrayF32FromWasm0(r0, r1).slice();
+        v1 = getArrayF32FromWasm0(r0, r1).slice();
         __wbindgen_free(r0, r1 * 4);
       }
-      return v0;
+      return v1;
     } finally {
       __wbindgen_add_to_stack_pointer(16);
     }
@@ -5488,7 +5496,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {RawVector | undefined}
   */
   coHeightfieldScale(handle) {
-    const ret = rawcolliderset_coHeightfieldScale(this.ptr, handle);
+    const ret = rawcolliderset_coHeightfieldScale(this.__wbg_ptr, handle);
     return ret === 0 ? void 0 : RawVector.__wrap(ret);
   }
   /**
@@ -5499,7 +5507,7 @@ var RawColliderSet = class _RawColliderSet {
   coHeightfieldNRows(handle) {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawcolliderset_coHeightfieldNRows(retptr, this.ptr, handle);
+      rawcolliderset_coHeightfieldNRows(retptr, this.__wbg_ptr, handle);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       return r0 === 0 ? void 0 : r1 >>> 0;
@@ -5515,7 +5523,7 @@ var RawColliderSet = class _RawColliderSet {
   coHeightfieldNCols(handle) {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawcolliderset_coHeightfieldNCols(retptr, this.ptr, handle);
+      rawcolliderset_coHeightfieldNCols(retptr, this.__wbg_ptr, handle);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       return r0 === 0 ? void 0 : r1 >>> 0;
@@ -5531,7 +5539,7 @@ var RawColliderSet = class _RawColliderSet {
   coParent(handle) {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawcolliderset_coParent(retptr, this.ptr, handle);
+      rawcolliderset_coParent(retptr, this.__wbg_ptr, handle);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r2 = getFloat64Memory0()[retptr / 8 + 1];
       return r0 === 0 ? void 0 : r2;
@@ -5544,14 +5552,14 @@ var RawColliderSet = class _RawColliderSet {
   * @param {boolean} enabled
   */
   coSetEnabled(handle, enabled) {
-    rawcolliderset_coSetEnabled(this.ptr, handle, enabled);
+    rawcolliderset_coSetEnabled(this.__wbg_ptr, handle, enabled);
   }
   /**
   * @param {number} handle
   * @returns {boolean}
   */
   coIsEnabled(handle) {
-    const ret = rawcolliderset_coIsEnabled(this.ptr, handle);
+    const ret = rawcolliderset_coIsEnabled(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -5560,7 +5568,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coFriction(handle) {
-    const ret = rawcolliderset_coFriction(this.ptr, handle);
+    const ret = rawcolliderset_coFriction(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -5569,7 +5577,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coRestitution(handle) {
-    const ret = rawcolliderset_coRestitution(this.ptr, handle);
+    const ret = rawcolliderset_coRestitution(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -5578,7 +5586,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coDensity(handle) {
-    const ret = rawcolliderset_coDensity(this.ptr, handle);
+    const ret = rawcolliderset_coDensity(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -5587,7 +5595,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coMass(handle) {
-    const ret = rawcolliderset_coMass(this.ptr, handle);
+    const ret = rawcolliderset_coMass(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -5596,7 +5604,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coVolume(handle) {
-    const ret = rawcolliderset_coVolume(this.ptr, handle);
+    const ret = rawcolliderset_coVolume(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -5605,7 +5613,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coCollisionGroups(handle) {
-    const ret = rawcolliderset_coCollisionGroups(this.ptr, handle);
+    const ret = rawcolliderset_coCollisionGroups(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -5614,7 +5622,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coSolverGroups(handle) {
-    const ret = rawcolliderset_coSolverGroups(this.ptr, handle);
+    const ret = rawcolliderset_coSolverGroups(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -5623,7 +5631,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coActiveHooks(handle) {
-    const ret = rawcolliderset_coActiveHooks(this.ptr, handle);
+    const ret = rawcolliderset_coActiveHooks(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -5632,7 +5640,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coActiveCollisionTypes(handle) {
-    const ret = rawcolliderset_coActiveCollisionTypes(this.ptr, handle);
+    const ret = rawcolliderset_coActiveCollisionTypes(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -5641,7 +5649,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coActiveEvents(handle) {
-    const ret = rawcolliderset_coActiveEvents(this.ptr, handle);
+    const ret = rawcolliderset_coActiveEvents(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -5650,7 +5658,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   coContactForceEventThreshold(handle) {
-    const ret = rawcolliderset_coContactForceEventThreshold(this.ptr, handle);
+    const ret = rawcolliderset_coContactForceEventThreshold(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -5660,7 +5668,7 @@ var RawColliderSet = class _RawColliderSet {
   */
   coContainsPoint(handle, point) {
     _assertClass(point, RawVector);
-    const ret = rawcolliderset_coContainsPoint(this.ptr, handle, point.ptr);
+    const ret = rawcolliderset_coContainsPoint(this.__wbg_ptr, handle, point.__wbg_ptr);
     return ret !== 0;
   }
   /**
@@ -5680,7 +5688,7 @@ var RawColliderSet = class _RawColliderSet {
     _assertClass(shape2Pos, RawVector);
     _assertClass(shape2Rot, RawRotation);
     _assertClass(shape2Vel, RawVector);
-    const ret = rawcolliderset_coCastShape(this.ptr, handle, colliderVel.ptr, shape2.ptr, shape2Pos.ptr, shape2Rot.ptr, shape2Vel.ptr, maxToi, stop_at_penetration);
+    const ret = rawcolliderset_coCastShape(this.__wbg_ptr, handle, colliderVel.__wbg_ptr, shape2.__wbg_ptr, shape2Pos.__wbg_ptr, shape2Rot.__wbg_ptr, shape2Vel.__wbg_ptr, maxToi, stop_at_penetration);
     return ret === 0 ? void 0 : RawShapeTOI.__wrap(ret);
   }
   /**
@@ -5695,7 +5703,7 @@ var RawColliderSet = class _RawColliderSet {
   coCastCollider(handle, collider1Vel, collider2handle, collider2Vel, max_toi, stop_at_penetration) {
     _assertClass(collider1Vel, RawVector);
     _assertClass(collider2Vel, RawVector);
-    const ret = rawcolliderset_coCastCollider(this.ptr, handle, collider1Vel.ptr, collider2handle, collider2Vel.ptr, max_toi, stop_at_penetration);
+    const ret = rawcolliderset_coCastCollider(this.__wbg_ptr, handle, collider1Vel.__wbg_ptr, collider2handle, collider2Vel.__wbg_ptr, max_toi, stop_at_penetration);
     return ret === 0 ? void 0 : RawShapeColliderTOI.__wrap(ret);
   }
   /**
@@ -5709,7 +5717,7 @@ var RawColliderSet = class _RawColliderSet {
     _assertClass(shape2, RawShape);
     _assertClass(shapePos2, RawVector);
     _assertClass(shapeRot2, RawRotation);
-    const ret = rawcolliderset_coIntersectsShape(this.ptr, handle, shape2.ptr, shapePos2.ptr, shapeRot2.ptr);
+    const ret = rawcolliderset_coIntersectsShape(this.__wbg_ptr, handle, shape2.__wbg_ptr, shapePos2.__wbg_ptr, shapeRot2.__wbg_ptr);
     return ret !== 0;
   }
   /**
@@ -5724,7 +5732,7 @@ var RawColliderSet = class _RawColliderSet {
     _assertClass(shape2, RawShape);
     _assertClass(shapePos2, RawVector);
     _assertClass(shapeRot2, RawRotation);
-    const ret = rawcolliderset_coContactShape(this.ptr, handle, shape2.ptr, shapePos2.ptr, shapeRot2.ptr, prediction);
+    const ret = rawcolliderset_coContactShape(this.__wbg_ptr, handle, shape2.__wbg_ptr, shapePos2.__wbg_ptr, shapeRot2.__wbg_ptr, prediction);
     return ret === 0 ? void 0 : RawShapeContact.__wrap(ret);
   }
   /**
@@ -5734,7 +5742,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {RawShapeContact | undefined}
   */
   coContactCollider(handle, collider2handle, prediction) {
-    const ret = rawcolliderset_coContactCollider(this.ptr, handle, collider2handle, prediction);
+    const ret = rawcolliderset_coContactCollider(this.__wbg_ptr, handle, collider2handle, prediction);
     return ret === 0 ? void 0 : RawShapeContact.__wrap(ret);
   }
   /**
@@ -5745,7 +5753,7 @@ var RawColliderSet = class _RawColliderSet {
   */
   coProjectPoint(handle, point, solid) {
     _assertClass(point, RawVector);
-    const ret = rawcolliderset_coProjectPoint(this.ptr, handle, point.ptr, solid);
+    const ret = rawcolliderset_coProjectPoint(this.__wbg_ptr, handle, point.__wbg_ptr, solid);
     return RawPointProjection.__wrap(ret);
   }
   /**
@@ -5758,7 +5766,7 @@ var RawColliderSet = class _RawColliderSet {
   coIntersectsRay(handle, rayOrig, rayDir, maxToi) {
     _assertClass(rayOrig, RawVector);
     _assertClass(rayDir, RawVector);
-    const ret = rawcolliderset_coIntersectsRay(this.ptr, handle, rayOrig.ptr, rayDir.ptr, maxToi);
+    const ret = rawcolliderset_coIntersectsRay(this.__wbg_ptr, handle, rayOrig.__wbg_ptr, rayDir.__wbg_ptr, maxToi);
     return ret !== 0;
   }
   /**
@@ -5772,7 +5780,7 @@ var RawColliderSet = class _RawColliderSet {
   coCastRay(handle, rayOrig, rayDir, maxToi, solid) {
     _assertClass(rayOrig, RawVector);
     _assertClass(rayDir, RawVector);
-    const ret = rawcolliderset_coCastRay(this.ptr, handle, rayOrig.ptr, rayDir.ptr, maxToi, solid);
+    const ret = rawcolliderset_coCastRay(this.__wbg_ptr, handle, rayOrig.__wbg_ptr, rayDir.__wbg_ptr, maxToi, solid);
     return ret;
   }
   /**
@@ -5786,7 +5794,7 @@ var RawColliderSet = class _RawColliderSet {
   coCastRayAndGetNormal(handle, rayOrig, rayDir, maxToi, solid) {
     _assertClass(rayOrig, RawVector);
     _assertClass(rayDir, RawVector);
-    const ret = rawcolliderset_coCastRayAndGetNormal(this.ptr, handle, rayOrig.ptr, rayDir.ptr, maxToi, solid);
+    const ret = rawcolliderset_coCastRayAndGetNormal(this.__wbg_ptr, handle, rayOrig.__wbg_ptr, rayDir.__wbg_ptr, maxToi, solid);
     return ret === 0 ? void 0 : RawRayIntersection.__wrap(ret);
   }
   /**
@@ -5794,28 +5802,28 @@ var RawColliderSet = class _RawColliderSet {
   * @param {boolean} is_sensor
   */
   coSetSensor(handle, is_sensor) {
-    rawcolliderset_coSetSensor(this.ptr, handle, is_sensor);
+    rawcolliderset_coSetSensor(this.__wbg_ptr, handle, is_sensor);
   }
   /**
   * @param {number} handle
   * @param {number} restitution
   */
   coSetRestitution(handle, restitution) {
-    rawcolliderset_coSetRestitution(this.ptr, handle, restitution);
+    rawcolliderset_coSetRestitution(this.__wbg_ptr, handle, restitution);
   }
   /**
   * @param {number} handle
   * @param {number} friction
   */
   coSetFriction(handle, friction) {
-    rawcolliderset_coSetFriction(this.ptr, handle, friction);
+    rawcolliderset_coSetFriction(this.__wbg_ptr, handle, friction);
   }
   /**
   * @param {number} handle
   * @returns {number}
   */
   coFrictionCombineRule(handle) {
-    const ret = rawcolliderset_coFrictionCombineRule(this.ptr, handle);
+    const ret = rawcolliderset_coFrictionCombineRule(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -5823,14 +5831,14 @@ var RawColliderSet = class _RawColliderSet {
   * @param {number} rule
   */
   coSetFrictionCombineRule(handle, rule) {
-    rawcolliderset_coSetFrictionCombineRule(this.ptr, handle, rule);
+    rawcolliderset_coSetFrictionCombineRule(this.__wbg_ptr, handle, rule);
   }
   /**
   * @param {number} handle
   * @returns {number}
   */
   coRestitutionCombineRule(handle) {
-    const ret = rawcolliderset_coRestitutionCombineRule(this.ptr, handle);
+    const ret = rawcolliderset_coRestitutionCombineRule(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -5838,42 +5846,42 @@ var RawColliderSet = class _RawColliderSet {
   * @param {number} rule
   */
   coSetRestitutionCombineRule(handle, rule) {
-    rawcolliderset_coSetRestitutionCombineRule(this.ptr, handle, rule);
+    rawcolliderset_coSetRestitutionCombineRule(this.__wbg_ptr, handle, rule);
   }
   /**
   * @param {number} handle
   * @param {number} groups
   */
   coSetCollisionGroups(handle, groups) {
-    rawcolliderset_coSetCollisionGroups(this.ptr, handle, groups);
+    rawcolliderset_coSetCollisionGroups(this.__wbg_ptr, handle, groups);
   }
   /**
   * @param {number} handle
   * @param {number} groups
   */
   coSetSolverGroups(handle, groups) {
-    rawcolliderset_coSetSolverGroups(this.ptr, handle, groups);
+    rawcolliderset_coSetSolverGroups(this.__wbg_ptr, handle, groups);
   }
   /**
   * @param {number} handle
   * @param {number} hooks
   */
   coSetActiveHooks(handle, hooks) {
-    rawcolliderset_coSetActiveHooks(this.ptr, handle, hooks);
+    rawcolliderset_coSetActiveHooks(this.__wbg_ptr, handle, hooks);
   }
   /**
   * @param {number} handle
   * @param {number} events
   */
   coSetActiveEvents(handle, events) {
-    rawcolliderset_coSetActiveEvents(this.ptr, handle, events);
+    rawcolliderset_coSetActiveEvents(this.__wbg_ptr, handle, events);
   }
   /**
   * @param {number} handle
   * @param {number} types
   */
   coSetActiveCollisionTypes(handle, types) {
-    rawcolliderset_coSetActiveCollisionTypes(this.ptr, handle, types);
+    rawcolliderset_coSetActiveCollisionTypes(this.__wbg_ptr, handle, types);
   }
   /**
   * @param {number} handle
@@ -5881,28 +5889,28 @@ var RawColliderSet = class _RawColliderSet {
   */
   coSetShape(handle, shape) {
     _assertClass(shape, RawShape);
-    rawcolliderset_coSetShape(this.ptr, handle, shape.ptr);
+    rawcolliderset_coSetShape(this.__wbg_ptr, handle, shape.__wbg_ptr);
   }
   /**
   * @param {number} handle
   * @param {number} threshold
   */
   coSetContactForceEventThreshold(handle, threshold) {
-    rawcolliderset_coSetContactForceEventThreshold(this.ptr, handle, threshold);
+    rawcolliderset_coSetContactForceEventThreshold(this.__wbg_ptr, handle, threshold);
   }
   /**
   * @param {number} handle
   * @param {number} density
   */
   coSetDensity(handle, density) {
-    rawcolliderset_coSetDensity(this.ptr, handle, density);
+    rawcolliderset_coSetDensity(this.__wbg_ptr, handle, density);
   }
   /**
   * @param {number} handle
   * @param {number} mass
   */
   coSetMass(handle, mass) {
-    rawcolliderset_coSetMass(this.ptr, handle, mass);
+    rawcolliderset_coSetMass(this.__wbg_ptr, handle, mass);
   }
   /**
   * @param {number} handle
@@ -5915,7 +5923,7 @@ var RawColliderSet = class _RawColliderSet {
     _assertClass(centerOfMass, RawVector);
     _assertClass(principalAngularInertia, RawVector);
     _assertClass(angularInertiaFrame, RawRotation);
-    rawcolliderset_coSetMassProperties(this.ptr, handle, mass, centerOfMass.ptr, principalAngularInertia.ptr, angularInertiaFrame.ptr);
+    rawcolliderset_coSetMassProperties(this.__wbg_ptr, handle, mass, centerOfMass.__wbg_ptr, principalAngularInertia.__wbg_ptr, angularInertiaFrame.__wbg_ptr);
   }
   /**
   */
@@ -5927,7 +5935,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {number}
   */
   len() {
-    const ret = rawcolliderset_len(this.ptr);
+    const ret = rawcolliderset_len(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
@@ -5935,7 +5943,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {boolean}
   */
   contains(handle) {
-    const ret = rawcolliderset_contains(this.ptr, handle);
+    const ret = rawcolliderset_contains(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -5975,7 +5983,7 @@ var RawColliderSet = class _RawColliderSet {
       _assertClass(principalAngularInertia, RawVector);
       _assertClass(angularInertiaFrame, RawRotation);
       _assertClass(bodies, RawRigidBodySet);
-      rawcolliderset_createCollider(retptr, this.ptr, enabled, shape.ptr, translation.ptr, rotation.ptr, massPropsMode, mass, centerOfMass.ptr, principalAngularInertia.ptr, angularInertiaFrame.ptr, density, friction, restitution, frictionCombineRule, restitutionCombineRule, isSensor, collisionGroups, solverGroups, activeCollisionTypes, activeHooks, activeEvents, contactForceEventThreshold, hasParent, parent, bodies.ptr);
+      rawcolliderset_createCollider(retptr, this.__wbg_ptr, enabled, shape.__wbg_ptr, translation.__wbg_ptr, rotation.__wbg_ptr, massPropsMode, mass, centerOfMass.__wbg_ptr, principalAngularInertia.__wbg_ptr, angularInertiaFrame.__wbg_ptr, density, friction, restitution, frictionCombineRule, restitutionCombineRule, isSensor, collisionGroups, solverGroups, activeCollisionTypes, activeHooks, activeEvents, contactForceEventThreshold, hasParent, parent, bodies.__wbg_ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r2 = getFloat64Memory0()[retptr / 8 + 1];
       return r0 === 0 ? void 0 : r2;
@@ -5993,7 +6001,7 @@ var RawColliderSet = class _RawColliderSet {
   remove(handle, islands, bodies, wakeUp) {
     _assertClass(islands, RawIslandManager);
     _assertClass(bodies, RawRigidBodySet);
-    rawcolliderset_remove(this.ptr, handle, islands.ptr, bodies.ptr, wakeUp);
+    rawcolliderset_remove(this.__wbg_ptr, handle, islands.__wbg_ptr, bodies.__wbg_ptr, wakeUp);
   }
   /**
   * Checks if a collider with the given integer handle exists.
@@ -6001,7 +6009,7 @@ var RawColliderSet = class _RawColliderSet {
   * @returns {boolean}
   */
   isHandleValid(handle) {
-    const ret = rawcolliderset_contains(this.ptr, handle);
+    const ret = rawcolliderset_contains(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -6013,7 +6021,7 @@ var RawColliderSet = class _RawColliderSet {
   */
   forEachColliderHandle(f) {
     try {
-      rawcolliderset_forEachColliderHandle(this.ptr, addBorrowedObject(f));
+      rawcolliderset_forEachColliderHandle(this.__wbg_ptr, addBorrowedObject(f));
     } finally {
       heap[stack_pointer++] = void 0;
     }
@@ -6021,13 +6029,14 @@ var RawColliderSet = class _RawColliderSet {
 };
 var RawContactForceEvent = class _RawContactForceEvent {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawContactForceEvent.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -6039,7 +6048,7 @@ var RawContactForceEvent = class _RawContactForceEvent {
   * @returns {number}
   */
   collider1() {
-    const ret = rawcharactercollision_handle(this.ptr);
+    const ret = rawcharactercollision_handle(this.__wbg_ptr);
     return ret;
   }
   /**
@@ -6047,7 +6056,7 @@ var RawContactForceEvent = class _RawContactForceEvent {
   * @returns {number}
   */
   collider2() {
-    const ret = rawcontactforceevent_collider2(this.ptr);
+    const ret = rawcontactforceevent_collider2(this.__wbg_ptr);
     return ret;
   }
   /**
@@ -6055,7 +6064,7 @@ var RawContactForceEvent = class _RawContactForceEvent {
   * @returns {RawVector}
   */
   total_force() {
-    const ret = rawcontactforceevent_total_force(this.ptr);
+    const ret = rawcontactforceevent_total_force(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
@@ -6067,7 +6076,7 @@ var RawContactForceEvent = class _RawContactForceEvent {
   * @returns {number}
   */
   total_force_magnitude() {
-    const ret = rawcontactforceevent_total_force_magnitude(this.ptr);
+    const ret = rawcontactforceevent_total_force_magnitude(this.__wbg_ptr);
     return ret;
   }
   /**
@@ -6075,7 +6084,7 @@ var RawContactForceEvent = class _RawContactForceEvent {
   * @returns {RawVector}
   */
   max_force_direction() {
-    const ret = rawcontactforceevent_max_force_direction(this.ptr);
+    const ret = rawcontactforceevent_max_force_direction(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
@@ -6083,19 +6092,20 @@ var RawContactForceEvent = class _RawContactForceEvent {
   * @returns {number}
   */
   max_force_magnitude() {
-    const ret = rawcontactforceevent_max_force_magnitude(this.ptr);
+    const ret = rawcontactforceevent_max_force_magnitude(this.__wbg_ptr);
     return ret;
   }
 };
 var RawContactManifold = class _RawContactManifold {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawContactManifold.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -6106,42 +6116,42 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {RawVector}
   */
   normal() {
-    const ret = rawcontactmanifold_normal(this.ptr);
+    const ret = rawcontactmanifold_normal(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   local_n1() {
-    const ret = rawcontactmanifold_local_n1(this.ptr);
+    const ret = rawcontactmanifold_local_n1(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   local_n2() {
-    const ret = rawcontactmanifold_local_n2(this.ptr);
+    const ret = rawcontactmanifold_local_n2(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {number}
   */
   subshape1() {
-    const ret = rawcontactmanifold_subshape1(this.ptr);
+    const ret = rawcontactmanifold_subshape1(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
   * @returns {number}
   */
   subshape2() {
-    const ret = rawcontactmanifold_subshape2(this.ptr);
+    const ret = rawcontactmanifold_subshape2(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
   * @returns {number}
   */
   num_contacts() {
-    const ret = rawcontactmanifold_num_contacts(this.ptr);
+    const ret = rawcontactmanifold_num_contacts(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
@@ -6149,7 +6159,7 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {RawVector | undefined}
   */
   contact_local_p1(i) {
-    const ret = rawcontactmanifold_contact_local_p1(this.ptr, i);
+    const ret = rawcontactmanifold_contact_local_p1(this.__wbg_ptr, i);
     return ret === 0 ? void 0 : RawVector.__wrap(ret);
   }
   /**
@@ -6157,7 +6167,7 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {RawVector | undefined}
   */
   contact_local_p2(i) {
-    const ret = rawcontactmanifold_contact_local_p2(this.ptr, i);
+    const ret = rawcontactmanifold_contact_local_p2(this.__wbg_ptr, i);
     return ret === 0 ? void 0 : RawVector.__wrap(ret);
   }
   /**
@@ -6165,7 +6175,7 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {number}
   */
   contact_dist(i) {
-    const ret = rawcontactmanifold_contact_dist(this.ptr, i);
+    const ret = rawcontactmanifold_contact_dist(this.__wbg_ptr, i);
     return ret;
   }
   /**
@@ -6173,7 +6183,7 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {number}
   */
   contact_fid1(i) {
-    const ret = rawcontactmanifold_contact_fid1(this.ptr, i);
+    const ret = rawcontactmanifold_contact_fid1(this.__wbg_ptr, i);
     return ret >>> 0;
   }
   /**
@@ -6181,7 +6191,7 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {number}
   */
   contact_fid2(i) {
-    const ret = rawcontactmanifold_contact_fid2(this.ptr, i);
+    const ret = rawcontactmanifold_contact_fid2(this.__wbg_ptr, i);
     return ret >>> 0;
   }
   /**
@@ -6189,7 +6199,7 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {number}
   */
   contact_impulse(i) {
-    const ret = rawcontactmanifold_contact_impulse(this.ptr, i);
+    const ret = rawcontactmanifold_contact_impulse(this.__wbg_ptr, i);
     return ret;
   }
   /**
@@ -6197,7 +6207,7 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {number}
   */
   contact_tangent_impulse_x(i) {
-    const ret = rawcontactmanifold_contact_tangent_impulse_x(this.ptr, i);
+    const ret = rawcontactmanifold_contact_tangent_impulse_x(this.__wbg_ptr, i);
     return ret;
   }
   /**
@@ -6205,14 +6215,14 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {number}
   */
   contact_tangent_impulse_y(i) {
-    const ret = rawcontactmanifold_contact_tangent_impulse_y(this.ptr, i);
+    const ret = rawcontactmanifold_contact_tangent_impulse_y(this.__wbg_ptr, i);
     return ret;
   }
   /**
   * @returns {number}
   */
   num_solver_contacts() {
-    const ret = rawcontactmanifold_num_solver_contacts(this.ptr);
+    const ret = rawcontactmanifold_num_solver_contacts(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
@@ -6220,7 +6230,7 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {RawVector | undefined}
   */
   solver_contact_point(i) {
-    const ret = rawcontactmanifold_solver_contact_point(this.ptr, i);
+    const ret = rawcontactmanifold_solver_contact_point(this.__wbg_ptr, i);
     return ret === 0 ? void 0 : RawVector.__wrap(ret);
   }
   /**
@@ -6228,7 +6238,7 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {number}
   */
   solver_contact_dist(i) {
-    const ret = rawcontactmanifold_solver_contact_dist(this.ptr, i);
+    const ret = rawcontactmanifold_solver_contact_dist(this.__wbg_ptr, i);
     return ret;
   }
   /**
@@ -6236,7 +6246,7 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {number}
   */
   solver_contact_friction(i) {
-    const ret = rawcontactmanifold_solver_contact_friction(this.ptr, i);
+    const ret = rawcontactmanifold_solver_contact_friction(this.__wbg_ptr, i);
     return ret;
   }
   /**
@@ -6244,7 +6254,7 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {number}
   */
   solver_contact_restitution(i) {
-    const ret = rawcontactmanifold_solver_contact_restitution(this.ptr, i);
+    const ret = rawcontactmanifold_solver_contact_restitution(this.__wbg_ptr, i);
     return ret;
   }
   /**
@@ -6252,19 +6262,20 @@ var RawContactManifold = class _RawContactManifold {
   * @returns {RawVector}
   */
   solver_contact_tangent_velocity(i) {
-    const ret = rawcontactmanifold_solver_contact_tangent_velocity(this.ptr, i);
+    const ret = rawcontactmanifold_solver_contact_tangent_velocity(this.__wbg_ptr, i);
     return RawVector.__wrap(ret);
   }
 };
 var RawContactPair = class _RawContactPair {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawContactPair.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -6275,21 +6286,21 @@ var RawContactPair = class _RawContactPair {
   * @returns {number}
   */
   collider1() {
-    const ret = rawcontactpair_collider1(this.ptr);
+    const ret = rawcontactpair_collider1(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {number}
   */
   collider2() {
-    const ret = rawcontactpair_collider2(this.ptr);
+    const ret = rawcontactpair_collider2(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {number}
   */
   numContactManifolds() {
-    const ret = rawcontactpair_numContactManifolds(this.ptr);
+    const ret = rawcontactpair_numContactManifolds(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
@@ -6297,19 +6308,20 @@ var RawContactPair = class _RawContactPair {
   * @returns {RawContactManifold | undefined}
   */
   contactManifold(i) {
-    const ret = rawcontactpair_contactManifold(this.ptr, i);
+    const ret = rawcontactpair_contactManifold(this.__wbg_ptr, i);
     return ret === 0 ? void 0 : RawContactManifold.__wrap(ret);
   }
 };
 var RawDebugRenderPipeline = class _RawDebugRenderPipeline {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawDebugRenderPipeline.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -6326,14 +6338,14 @@ var RawDebugRenderPipeline = class _RawDebugRenderPipeline {
   * @returns {Float32Array}
   */
   vertices() {
-    const ret = rawdebugrenderpipeline_vertices(this.ptr);
+    const ret = rawdebugrenderpipeline_vertices(this.__wbg_ptr);
     return takeObject(ret);
   }
   /**
   * @returns {Float32Array}
   */
   colors() {
-    const ret = rawdebugrenderpipeline_colors(this.ptr);
+    const ret = rawdebugrenderpipeline_colors(this.__wbg_ptr);
     return takeObject(ret);
   }
   /**
@@ -6349,18 +6361,19 @@ var RawDebugRenderPipeline = class _RawDebugRenderPipeline {
     _assertClass(impulse_joints, RawImpulseJointSet);
     _assertClass(multibody_joints, RawMultibodyJointSet);
     _assertClass(narrow_phase, RawNarrowPhase);
-    rawdebugrenderpipeline_render(this.ptr, bodies.ptr, colliders.ptr, impulse_joints.ptr, multibody_joints.ptr, narrow_phase.ptr);
+    rawdebugrenderpipeline_render(this.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, impulse_joints.__wbg_ptr, multibody_joints.__wbg_ptr, narrow_phase.__wbg_ptr);
   }
 };
 var RawDeserializedWorld = class _RawDeserializedWorld {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawDeserializedWorld.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -6371,75 +6384,591 @@ var RawDeserializedWorld = class _RawDeserializedWorld {
   * @returns {RawVector | undefined}
   */
   takeGravity() {
-    const ret = rawdeserializedworld_takeGravity(this.ptr);
+    const ret = rawdeserializedworld_takeGravity(this.__wbg_ptr);
     return ret === 0 ? void 0 : RawVector.__wrap(ret);
   }
   /**
   * @returns {RawIntegrationParameters | undefined}
   */
   takeIntegrationParameters() {
-    const ret = rawdeserializedworld_takeIntegrationParameters(this.ptr);
+    const ret = rawdeserializedworld_takeIntegrationParameters(this.__wbg_ptr);
     return ret === 0 ? void 0 : RawIntegrationParameters.__wrap(ret);
   }
   /**
   * @returns {RawIslandManager | undefined}
   */
   takeIslandManager() {
-    const ret = rawdeserializedworld_takeIslandManager(this.ptr);
+    const ret = rawdeserializedworld_takeIslandManager(this.__wbg_ptr);
     return ret === 0 ? void 0 : RawIslandManager.__wrap(ret);
   }
   /**
   * @returns {RawBroadPhase | undefined}
   */
   takeBroadPhase() {
-    const ret = rawdeserializedworld_takeBroadPhase(this.ptr);
+    const ret = rawdeserializedworld_takeBroadPhase(this.__wbg_ptr);
     return ret === 0 ? void 0 : RawBroadPhase.__wrap(ret);
   }
   /**
   * @returns {RawNarrowPhase | undefined}
   */
   takeNarrowPhase() {
-    const ret = rawdeserializedworld_takeNarrowPhase(this.ptr);
+    const ret = rawdeserializedworld_takeNarrowPhase(this.__wbg_ptr);
     return ret === 0 ? void 0 : RawNarrowPhase.__wrap(ret);
   }
   /**
   * @returns {RawRigidBodySet | undefined}
   */
   takeBodies() {
-    const ret = rawdeserializedworld_takeBodies(this.ptr);
+    const ret = rawdeserializedworld_takeBodies(this.__wbg_ptr);
     return ret === 0 ? void 0 : RawRigidBodySet.__wrap(ret);
   }
   /**
   * @returns {RawColliderSet | undefined}
   */
   takeColliders() {
-    const ret = rawdeserializedworld_takeColliders(this.ptr);
+    const ret = rawdeserializedworld_takeColliders(this.__wbg_ptr);
     return ret === 0 ? void 0 : RawColliderSet.__wrap(ret);
   }
   /**
   * @returns {RawImpulseJointSet | undefined}
   */
   takeImpulseJoints() {
-    const ret = rawdeserializedworld_takeImpulseJoints(this.ptr);
+    const ret = rawdeserializedworld_takeImpulseJoints(this.__wbg_ptr);
     return ret === 0 ? void 0 : RawImpulseJointSet.__wrap(ret);
   }
   /**
   * @returns {RawMultibodyJointSet | undefined}
   */
   takeMultibodyJoints() {
-    const ret = rawdeserializedworld_takeMultibodyJoints(this.ptr);
+    const ret = rawdeserializedworld_takeMultibodyJoints(this.__wbg_ptr);
     return ret === 0 ? void 0 : RawMultibodyJointSet.__wrap(ret);
+  }
+};
+var RawDynamicRayCastVehicleController = class _RawDynamicRayCastVehicleController {
+  static __wrap(ptr) {
+    ptr = ptr >>> 0;
+    const obj = Object.create(_RawDynamicRayCastVehicleController.prototype);
+    obj.__wbg_ptr = ptr;
+    return obj;
+  }
+  __destroy_into_raw() {
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
+    return ptr;
+  }
+  free() {
+    const ptr = this.__destroy_into_raw();
+    __wbg_rawdynamicraycastvehiclecontroller_free(ptr);
+  }
+  /**
+  * @param {number} chassis
+  */
+  constructor(chassis) {
+    const ret = rawdynamicraycastvehiclecontroller_new(chassis);
+    return _RawDynamicRayCastVehicleController.__wrap(ret);
+  }
+  /**
+  * @returns {number}
+  */
+  current_vehicle_speed() {
+    const ret = rawdynamicraycastvehiclecontroller_current_vehicle_speed(this.__wbg_ptr);
+    return ret;
+  }
+  /**
+  * @returns {number}
+  */
+  chassis() {
+    const ret = rawdynamicraycastvehiclecontroller_chassis(this.__wbg_ptr);
+    return ret;
+  }
+  /**
+  * @returns {number}
+  */
+  index_up_axis() {
+    const ret = rawdynamicraycastvehiclecontroller_index_up_axis(this.__wbg_ptr);
+    return ret >>> 0;
+  }
+  /**
+  * @param {number} axis
+  */
+  set_index_up_axis(axis) {
+    rawdynamicraycastvehiclecontroller_set_index_up_axis(this.__wbg_ptr, axis);
+  }
+  /**
+  * @returns {number}
+  */
+  index_forward_axis() {
+    const ret = rawdynamicraycastvehiclecontroller_index_forward_axis(this.__wbg_ptr);
+    return ret >>> 0;
+  }
+  /**
+  * @param {number} axis
+  */
+  set_index_forward_axis(axis) {
+    rawdynamicraycastvehiclecontroller_set_index_forward_axis(this.__wbg_ptr, axis);
+  }
+  /**
+  * @param {RawVector} chassis_connection_cs
+  * @param {RawVector} direction_cs
+  * @param {RawVector} axle_cs
+  * @param {number} suspension_rest_length
+  * @param {number} radius
+  */
+  add_wheel(chassis_connection_cs, direction_cs, axle_cs, suspension_rest_length, radius) {
+    _assertClass(chassis_connection_cs, RawVector);
+    _assertClass(direction_cs, RawVector);
+    _assertClass(axle_cs, RawVector);
+    rawdynamicraycastvehiclecontroller_add_wheel(this.__wbg_ptr, chassis_connection_cs.__wbg_ptr, direction_cs.__wbg_ptr, axle_cs.__wbg_ptr, suspension_rest_length, radius);
+  }
+  /**
+  * @returns {number}
+  */
+  num_wheels() {
+    const ret = rawdynamicraycastvehiclecontroller_num_wheels(this.__wbg_ptr);
+    return ret >>> 0;
+  }
+  /**
+  * @param {number} dt
+  * @param {RawRigidBodySet} bodies
+  * @param {RawColliderSet} colliders
+  * @param {RawQueryPipeline} queries
+  * @param {number} filter_flags
+  * @param {number | undefined} filter_groups
+  * @param {Function} filter_predicate
+  */
+  update_vehicle(dt, bodies, colliders, queries, filter_flags, filter_groups, filter_predicate) {
+    try {
+      _assertClass(bodies, RawRigidBodySet);
+      _assertClass(colliders, RawColliderSet);
+      _assertClass(queries, RawQueryPipeline);
+      rawdynamicraycastvehiclecontroller_update_vehicle(this.__wbg_ptr, dt, bodies.__wbg_ptr, colliders.__wbg_ptr, queries.__wbg_ptr, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, addBorrowedObject(filter_predicate));
+    } finally {
+      heap[stack_pointer++] = void 0;
+    }
+  }
+  /**
+  * @param {number} i
+  * @returns {RawVector | undefined}
+  */
+  wheel_chassis_connection_point_cs(i) {
+    const ret = rawdynamicraycastvehiclecontroller_wheel_chassis_connection_point_cs(this.__wbg_ptr, i);
+    return ret === 0 ? void 0 : RawVector.__wrap(ret);
+  }
+  /**
+  * @param {number} i
+  * @param {RawVector} value
+  */
+  set_wheel_chassis_connection_point_cs(i, value) {
+    _assertClass(value, RawVector);
+    rawdynamicraycastvehiclecontroller_set_wheel_chassis_connection_point_cs(this.__wbg_ptr, i, value.__wbg_ptr);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_suspension_rest_length(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_suspension_rest_length(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @param {number} value
+  */
+  set_wheel_suspension_rest_length(i, value) {
+    rawdynamicraycastvehiclecontroller_set_wheel_suspension_rest_length(this.__wbg_ptr, i, value);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_max_suspension_travel(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_max_suspension_travel(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @param {number} value
+  */
+  set_wheel_max_suspension_travel(i, value) {
+    rawdynamicraycastvehiclecontroller_set_wheel_max_suspension_travel(this.__wbg_ptr, i, value);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_radius(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_radius(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @param {number} value
+  */
+  set_wheel_radius(i, value) {
+    rawdynamicraycastvehiclecontroller_set_wheel_radius(this.__wbg_ptr, i, value);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_suspension_stiffness(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_suspension_stiffness(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @param {number} value
+  */
+  set_wheel_suspension_stiffness(i, value) {
+    rawdynamicraycastvehiclecontroller_set_wheel_suspension_stiffness(this.__wbg_ptr, i, value);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_suspension_compression(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_suspension_compression(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @param {number} value
+  */
+  set_wheel_suspension_compression(i, value) {
+    rawdynamicraycastvehiclecontroller_set_wheel_suspension_compression(this.__wbg_ptr, i, value);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_suspension_relaxation(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_suspension_relaxation(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @param {number} value
+  */
+  set_wheel_suspension_relaxation(i, value) {
+    rawdynamicraycastvehiclecontroller_set_wheel_suspension_relaxation(this.__wbg_ptr, i, value);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_max_suspension_force(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_max_suspension_force(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @param {number} value
+  */
+  set_wheel_max_suspension_force(i, value) {
+    rawdynamicraycastvehiclecontroller_set_wheel_max_suspension_force(this.__wbg_ptr, i, value);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_brake(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_brake(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @param {number} value
+  */
+  set_wheel_brake(i, value) {
+    rawdynamicraycastvehiclecontroller_set_wheel_brake(this.__wbg_ptr, i, value);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_steering(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_steering(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @param {number} value
+  */
+  set_wheel_steering(i, value) {
+    rawdynamicraycastvehiclecontroller_set_wheel_steering(this.__wbg_ptr, i, value);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_engine_force(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_engine_force(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @param {number} value
+  */
+  set_wheel_engine_force(i, value) {
+    rawdynamicraycastvehiclecontroller_set_wheel_engine_force(this.__wbg_ptr, i, value);
+  }
+  /**
+  * @param {number} i
+  * @returns {RawVector | undefined}
+  */
+  wheel_direction_cs(i) {
+    const ret = rawdynamicraycastvehiclecontroller_wheel_direction_cs(this.__wbg_ptr, i);
+    return ret === 0 ? void 0 : RawVector.__wrap(ret);
+  }
+  /**
+  * @param {number} i
+  * @param {RawVector} value
+  */
+  set_wheel_direction_cs(i, value) {
+    _assertClass(value, RawVector);
+    rawdynamicraycastvehiclecontroller_set_wheel_direction_cs(this.__wbg_ptr, i, value.__wbg_ptr);
+  }
+  /**
+  * @param {number} i
+  * @returns {RawVector | undefined}
+  */
+  wheel_axle_cs(i) {
+    const ret = rawdynamicraycastvehiclecontroller_wheel_axle_cs(this.__wbg_ptr, i);
+    return ret === 0 ? void 0 : RawVector.__wrap(ret);
+  }
+  /**
+  * @param {number} i
+  * @param {RawVector} value
+  */
+  set_wheel_axle_cs(i, value) {
+    _assertClass(value, RawVector);
+    rawdynamicraycastvehiclecontroller_set_wheel_axle_cs(this.__wbg_ptr, i, value.__wbg_ptr);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_friction_slip(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_friction_slip(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @param {number} value
+  */
+  set_wheel_friction_slip(i, value) {
+    rawdynamicraycastvehiclecontroller_set_wheel_friction_slip(this.__wbg_ptr, i, value);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_rotation(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_rotation(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_forward_impulse(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_forward_impulse(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_side_impulse(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_side_impulse(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_suspension_force(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_suspension_force(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @returns {RawVector | undefined}
+  */
+  wheel_contact_normal_ws(i) {
+    const ret = rawdynamicraycastvehiclecontroller_wheel_contact_normal_ws(this.__wbg_ptr, i);
+    return ret === 0 ? void 0 : RawVector.__wrap(ret);
+  }
+  /**
+  * @param {number} i
+  * @returns {RawVector | undefined}
+  */
+  wheel_contact_point_ws(i) {
+    const ret = rawdynamicraycastvehiclecontroller_wheel_contact_point_ws(this.__wbg_ptr, i);
+    return ret === 0 ? void 0 : RawVector.__wrap(ret);
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_suspension_length(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_suspension_length(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getFloat32Memory0()[retptr / 4 + 1];
+      return r0 === 0 ? void 0 : r1;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {number} i
+  * @returns {RawVector | undefined}
+  */
+  wheel_hard_point_ws(i) {
+    const ret = rawdynamicraycastvehiclecontroller_wheel_hard_point_ws(this.__wbg_ptr, i);
+    return ret === 0 ? void 0 : RawVector.__wrap(ret);
+  }
+  /**
+  * @param {number} i
+  * @returns {boolean}
+  */
+  wheel_is_in_contact(i) {
+    const ret = rawdynamicraycastvehiclecontroller_wheel_is_in_contact(this.__wbg_ptr, i);
+    return ret !== 0;
+  }
+  /**
+  * @param {number} i
+  * @returns {number | undefined}
+  */
+  wheel_ground_object(i) {
+    try {
+      const retptr = __wbindgen_add_to_stack_pointer(-16);
+      rawdynamicraycastvehiclecontroller_wheel_ground_object(retptr, this.__wbg_ptr, i);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r2 = getFloat64Memory0()[retptr / 8 + 1];
+      return r0 === 0 ? void 0 : r2;
+    } finally {
+      __wbindgen_add_to_stack_pointer(16);
+    }
   }
 };
 var RawEventQueue = class _RawEventQueue {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawEventQueue.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -6473,7 +7002,7 @@ var RawEventQueue = class _RawEventQueue {
   */
   drainCollisionEvents(f) {
     try {
-      raweventqueue_drainCollisionEvents(this.ptr, addBorrowedObject(f));
+      raweventqueue_drainCollisionEvents(this.__wbg_ptr, addBorrowedObject(f));
     } finally {
       heap[stack_pointer++] = void 0;
     }
@@ -6483,7 +7012,7 @@ var RawEventQueue = class _RawEventQueue {
   */
   drainContactForceEvents(f) {
     try {
-      raweventqueue_drainContactForceEvents(this.ptr, addBorrowedObject(f));
+      raweventqueue_drainContactForceEvents(this.__wbg_ptr, addBorrowedObject(f));
     } finally {
       heap[stack_pointer++] = void 0;
     }
@@ -6492,23 +7021,42 @@ var RawEventQueue = class _RawEventQueue {
   * Removes all events contained by this collector.
   */
   clear() {
-    raweventqueue_clear(this.ptr);
+    raweventqueue_clear(this.__wbg_ptr);
   }
 };
 var RawGenericJoint = class _RawGenericJoint {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawGenericJoint.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
     const ptr = this.__destroy_into_raw();
     __wbg_rawgenericjoint_free(ptr);
+  }
+  /**
+  * Creates a new joint descriptor that builds generic joints.
+  *
+  * Generic joints allow arbitrary axes of freedom to be selected
+  * for the joint from the available 6 degrees of freedom.
+  * @param {RawVector} anchor1
+  * @param {RawVector} anchor2
+  * @param {RawVector} axis
+  * @param {number} lockedAxes
+  * @returns {RawGenericJoint | undefined}
+  */
+  static generic(anchor1, anchor2, axis, lockedAxes) {
+    _assertClass(anchor1, RawVector);
+    _assertClass(anchor2, RawVector);
+    _assertClass(axis, RawVector);
+    const ret = rawgenericjoint_generic(anchor1.__wbg_ptr, anchor2.__wbg_ptr, axis.__wbg_ptr, lockedAxes);
+    return ret === 0 ? void 0 : _RawGenericJoint.__wrap(ret);
   }
   /**
   * Create a new joint descriptor that builds spehrical joints.
@@ -6523,7 +7071,7 @@ var RawGenericJoint = class _RawGenericJoint {
   static spherical(anchor1, anchor2) {
     _assertClass(anchor1, RawVector);
     _assertClass(anchor2, RawVector);
-    const ret = rawgenericjoint_spherical(anchor1.ptr, anchor2.ptr);
+    const ret = rawgenericjoint_spherical(anchor1.__wbg_ptr, anchor2.__wbg_ptr);
     return _RawGenericJoint.__wrap(ret);
   }
   /**
@@ -6545,7 +7093,7 @@ var RawGenericJoint = class _RawGenericJoint {
     _assertClass(anchor1, RawVector);
     _assertClass(anchor2, RawVector);
     _assertClass(axis, RawVector);
-    const ret = rawgenericjoint_prismatic(anchor1.ptr, anchor2.ptr, axis.ptr, limitsEnabled, limitsMin, limitsMax);
+    const ret = rawgenericjoint_prismatic(anchor1.__wbg_ptr, anchor2.__wbg_ptr, axis.__wbg_ptr, limitsEnabled, limitsMin, limitsMax);
     return ret === 0 ? void 0 : _RawGenericJoint.__wrap(ret);
   }
   /**
@@ -6563,7 +7111,7 @@ var RawGenericJoint = class _RawGenericJoint {
     _assertClass(axes1, RawRotation);
     _assertClass(anchor2, RawVector);
     _assertClass(axes2, RawRotation);
-    const ret = rawgenericjoint_fixed(anchor1.ptr, axes1.ptr, anchor2.ptr, axes2.ptr);
+    const ret = rawgenericjoint_fixed(anchor1.__wbg_ptr, axes1.__wbg_ptr, anchor2.__wbg_ptr, axes2.__wbg_ptr);
     return _RawGenericJoint.__wrap(ret);
   }
   /**
@@ -6580,19 +7128,20 @@ var RawGenericJoint = class _RawGenericJoint {
     _assertClass(anchor1, RawVector);
     _assertClass(anchor2, RawVector);
     _assertClass(axis, RawVector);
-    const ret = rawgenericjoint_revolute(anchor1.ptr, anchor2.ptr, axis.ptr);
+    const ret = rawgenericjoint_revolute(anchor1.__wbg_ptr, anchor2.__wbg_ptr, axis.__wbg_ptr);
     return ret === 0 ? void 0 : _RawGenericJoint.__wrap(ret);
   }
 };
 var RawImpulseJointSet = class _RawImpulseJointSet {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawImpulseJointSet.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -6605,7 +7154,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {number}
   */
   jointType(handle) {
-    const ret = rawimpulsejointset_jointType(this.ptr, handle);
+    const ret = rawimpulsejointset_jointType(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -6614,7 +7163,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {number}
   */
   jointBodyHandle1(handle) {
-    const ret = rawimpulsejointset_jointBodyHandle1(this.ptr, handle);
+    const ret = rawimpulsejointset_jointBodyHandle1(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -6623,7 +7172,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {number}
   */
   jointBodyHandle2(handle) {
-    const ret = rawimpulsejointset_jointBodyHandle2(this.ptr, handle);
+    const ret = rawimpulsejointset_jointBodyHandle2(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -6632,7 +7181,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {RawRotation}
   */
   jointFrameX1(handle) {
-    const ret = rawimpulsejointset_jointFrameX1(this.ptr, handle);
+    const ret = rawimpulsejointset_jointFrameX1(this.__wbg_ptr, handle);
     return RawRotation.__wrap(ret);
   }
   /**
@@ -6641,7 +7190,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {RawRotation}
   */
   jointFrameX2(handle) {
-    const ret = rawimpulsejointset_jointFrameX2(this.ptr, handle);
+    const ret = rawimpulsejointset_jointFrameX2(this.__wbg_ptr, handle);
     return RawRotation.__wrap(ret);
   }
   /**
@@ -6653,7 +7202,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {RawVector}
   */
   jointAnchor1(handle) {
-    const ret = rawimpulsejointset_jointAnchor1(this.ptr, handle);
+    const ret = rawimpulsejointset_jointAnchor1(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -6665,7 +7214,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {RawVector}
   */
   jointAnchor2(handle) {
-    const ret = rawimpulsejointset_jointAnchor2(this.ptr, handle);
+    const ret = rawimpulsejointset_jointAnchor2(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -6675,7 +7224,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   */
   jointSetAnchor1(handle, newPos) {
     _assertClass(newPos, RawVector);
-    rawimpulsejointset_jointSetAnchor1(this.ptr, handle, newPos.ptr);
+    rawimpulsejointset_jointSetAnchor1(this.__wbg_ptr, handle, newPos.__wbg_ptr);
   }
   /**
   * Sets the position of the second local anchor
@@ -6684,7 +7233,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   */
   jointSetAnchor2(handle, newPos) {
     _assertClass(newPos, RawVector);
-    rawimpulsejointset_jointSetAnchor2(this.ptr, handle, newPos.ptr);
+    rawimpulsejointset_jointSetAnchor2(this.__wbg_ptr, handle, newPos.__wbg_ptr);
   }
   /**
   * Are contacts between the rigid-bodies attached by this joint enabled?
@@ -6692,7 +7241,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {boolean}
   */
   jointContactsEnabled(handle) {
-    const ret = rawimpulsejointset_jointContactsEnabled(this.ptr, handle);
+    const ret = rawimpulsejointset_jointContactsEnabled(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -6701,7 +7250,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @param {boolean} enabled
   */
   jointSetContactsEnabled(handle, enabled) {
-    rawimpulsejointset_jointSetContactsEnabled(this.ptr, handle, enabled);
+    rawimpulsejointset_jointSetContactsEnabled(this.__wbg_ptr, handle, enabled);
   }
   /**
   * Are the limits for this joint enabled?
@@ -6710,7 +7259,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {boolean}
   */
   jointLimitsEnabled(handle, axis) {
-    const ret = rawimpulsejointset_jointLimitsEnabled(this.ptr, handle, axis);
+    const ret = rawimpulsejointset_jointLimitsEnabled(this.__wbg_ptr, handle, axis);
     return ret !== 0;
   }
   /**
@@ -6720,7 +7269,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {number}
   */
   jointLimitsMin(handle, axis) {
-    const ret = rawimpulsejointset_jointLimitsMin(this.ptr, handle, axis);
+    const ret = rawimpulsejointset_jointLimitsMin(this.__wbg_ptr, handle, axis);
     return ret;
   }
   /**
@@ -6730,7 +7279,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {number}
   */
   jointLimitsMax(handle, axis) {
-    const ret = rawimpulsejointset_jointLimitsMax(this.ptr, handle, axis);
+    const ret = rawimpulsejointset_jointLimitsMax(this.__wbg_ptr, handle, axis);
     return ret;
   }
   /**
@@ -6741,7 +7290,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @param {number} max
   */
   jointSetLimits(handle, axis, min, max) {
-    rawimpulsejointset_jointSetLimits(this.ptr, handle, axis, min, max);
+    rawimpulsejointset_jointSetLimits(this.__wbg_ptr, handle, axis, min, max);
   }
   /**
   * @param {number} handle
@@ -6749,7 +7298,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @param {number} model
   */
   jointConfigureMotorModel(handle, axis, model) {
-    rawimpulsejointset_jointConfigureMotorModel(this.ptr, handle, axis, model);
+    rawimpulsejointset_jointConfigureMotorModel(this.__wbg_ptr, handle, axis, model);
   }
   /**
   * @param {number} handle
@@ -6758,7 +7307,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @param {number} factor
   */
   jointConfigureMotorVelocity(handle, axis, targetVel, factor) {
-    rawimpulsejointset_jointConfigureMotorVelocity(this.ptr, handle, axis, targetVel, factor);
+    rawimpulsejointset_jointConfigureMotorVelocity(this.__wbg_ptr, handle, axis, targetVel, factor);
   }
   /**
   * @param {number} handle
@@ -6768,7 +7317,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @param {number} damping
   */
   jointConfigureMotorPosition(handle, axis, targetPos, stiffness, damping) {
-    rawimpulsejointset_jointConfigureMotorPosition(this.ptr, handle, axis, targetPos, stiffness, damping);
+    rawimpulsejointset_jointConfigureMotorPosition(this.__wbg_ptr, handle, axis, targetPos, stiffness, damping);
   }
   /**
   * @param {number} handle
@@ -6779,7 +7328,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @param {number} damping
   */
   jointConfigureMotor(handle, axis, targetPos, targetVel, stiffness, damping) {
-    rawimpulsejointset_jointConfigureMotor(this.ptr, handle, axis, targetPos, targetVel, stiffness, damping);
+    rawimpulsejointset_jointConfigureMotor(this.__wbg_ptr, handle, axis, targetPos, targetVel, stiffness, damping);
   }
   /**
   */
@@ -6796,7 +7345,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   */
   createJoint(params, parent1, parent2, wake_up) {
     _assertClass(params, RawGenericJoint);
-    const ret = rawimpulsejointset_createJoint(this.ptr, params.ptr, parent1, parent2, wake_up);
+    const ret = rawimpulsejointset_createJoint(this.__wbg_ptr, params.__wbg_ptr, parent1, parent2, wake_up);
     return ret;
   }
   /**
@@ -6804,13 +7353,13 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @param {boolean} wakeUp
   */
   remove(handle, wakeUp) {
-    rawimpulsejointset_remove(this.ptr, handle, wakeUp);
+    rawimpulsejointset_remove(this.__wbg_ptr, handle, wakeUp);
   }
   /**
   * @returns {number}
   */
   len() {
-    const ret = rawimpulsejointset_len(this.ptr);
+    const ret = rawimpulsejointset_len(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
@@ -6818,7 +7367,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   * @returns {boolean}
   */
   contains(handle) {
-    const ret = rawimpulsejointset_contains(this.ptr, handle);
+    const ret = rawimpulsejointset_contains(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -6830,7 +7379,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   */
   forEachJointHandle(f) {
     try {
-      rawimpulsejointset_forEachJointHandle(this.ptr, addBorrowedObject(f));
+      rawimpulsejointset_forEachJointHandle(this.__wbg_ptr, addBorrowedObject(f));
     } finally {
       heap[stack_pointer++] = void 0;
     }
@@ -6845,7 +7394,7 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
   */
   forEachJointAttachedToRigidBody(body, f) {
     try {
-      rawimpulsejointset_forEachJointAttachedToRigidBody(this.ptr, body, addBorrowedObject(f));
+      rawimpulsejointset_forEachJointAttachedToRigidBody(this.__wbg_ptr, body, addBorrowedObject(f));
     } finally {
       heap[stack_pointer++] = void 0;
     }
@@ -6853,13 +7402,14 @@ var RawImpulseJointSet = class _RawImpulseJointSet {
 };
 var RawIntegrationParameters = class _RawIntegrationParameters {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawIntegrationParameters.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -6876,129 +7426,130 @@ var RawIntegrationParameters = class _RawIntegrationParameters {
   * @returns {number}
   */
   get dt() {
-    const ret = rawintegrationparameters_dt(this.ptr);
+    const ret = rawintegrationparameters_dt(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {number}
   */
   get erp() {
-    const ret = rawcharactercollision_toi(this.ptr);
+    const ret = rawintegrationparameters_erp(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {number}
   */
   get allowedLinearError() {
-    const ret = rawintegrationparameters_allowedLinearError(this.ptr);
+    const ret = rawintegrationparameters_allowedLinearError(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {number}
   */
   get predictionDistance() {
-    const ret = rawintegrationparameters_predictionDistance(this.ptr);
+    const ret = rawintegrationparameters_predictionDistance(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {number}
   */
   get maxVelocityIterations() {
-    const ret = rawintegrationparameters_maxVelocityIterations(this.ptr);
+    const ret = rawintegrationparameters_maxVelocityIterations(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
   * @returns {number}
   */
   get maxVelocityFrictionIterations() {
-    const ret = rawintegrationparameters_maxVelocityFrictionIterations(this.ptr);
+    const ret = rawintegrationparameters_maxVelocityFrictionIterations(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
   * @returns {number}
   */
   get maxStabilizationIterations() {
-    const ret = rawintegrationparameters_maxStabilizationIterations(this.ptr);
+    const ret = rawintegrationparameters_maxStabilizationIterations(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
   * @returns {number}
   */
   get minIslandSize() {
-    const ret = rawintegrationparameters_minIslandSize(this.ptr);
+    const ret = rawdynamicraycastvehiclecontroller_index_up_axis(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
   * @returns {number}
   */
   get maxCcdSubsteps() {
-    const ret = rawintegrationparameters_maxCcdSubsteps(this.ptr);
+    const ret = rawdynamicraycastvehiclecontroller_index_forward_axis(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
   * @param {number} value
   */
   set dt(value) {
-    rawintegrationparameters_set_dt(this.ptr, value);
+    rawintegrationparameters_set_dt(this.__wbg_ptr, value);
   }
   /**
   * @param {number} value
   */
   set erp(value) {
-    rawintegrationparameters_set_erp(this.ptr, value);
+    rawintegrationparameters_set_erp(this.__wbg_ptr, value);
   }
   /**
   * @param {number} value
   */
   set allowedLinearError(value) {
-    rawintegrationparameters_set_allowedLinearError(this.ptr, value);
+    rawintegrationparameters_set_allowedLinearError(this.__wbg_ptr, value);
   }
   /**
   * @param {number} value
   */
   set predictionDistance(value) {
-    rawintegrationparameters_set_predictionDistance(this.ptr, value);
+    rawintegrationparameters_set_predictionDistance(this.__wbg_ptr, value);
   }
   /**
   * @param {number} value
   */
   set maxVelocityIterations(value) {
-    rawintegrationparameters_set_maxVelocityIterations(this.ptr, value);
+    rawintegrationparameters_set_maxVelocityIterations(this.__wbg_ptr, value);
   }
   /**
   * @param {number} value
   */
   set maxVelocityFrictionIterations(value) {
-    rawintegrationparameters_set_maxVelocityFrictionIterations(this.ptr, value);
+    rawintegrationparameters_set_maxVelocityFrictionIterations(this.__wbg_ptr, value);
   }
   /**
   * @param {number} value
   */
   set maxStabilizationIterations(value) {
-    rawintegrationparameters_set_maxStabilizationIterations(this.ptr, value);
+    rawintegrationparameters_set_maxStabilizationIterations(this.__wbg_ptr, value);
   }
   /**
   * @param {number} value
   */
   set minIslandSize(value) {
-    rawintegrationparameters_set_minIslandSize(this.ptr, value);
+    rawdynamicraycastvehiclecontroller_set_index_up_axis(this.__wbg_ptr, value);
   }
   /**
   * @param {number} value
   */
   set maxCcdSubsteps(value) {
-    rawintegrationparameters_set_maxCcdSubsteps(this.ptr, value);
+    rawdynamicraycastvehiclecontroller_set_index_forward_axis(this.__wbg_ptr, value);
   }
 };
 var RawIslandManager = class _RawIslandManager {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawIslandManager.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -7026,7 +7577,7 @@ var RawIslandManager = class _RawIslandManager {
   */
   forEachActiveRigidBodyHandle(f) {
     try {
-      rawislandmanager_forEachActiveRigidBodyHandle(this.ptr, addBorrowedObject(f));
+      rawislandmanager_forEachActiveRigidBodyHandle(this.__wbg_ptr, addBorrowedObject(f));
     } finally {
       heap[stack_pointer++] = void 0;
     }
@@ -7034,13 +7585,14 @@ var RawIslandManager = class _RawIslandManager {
 };
 var RawKinematicCharacterController = class _RawKinematicCharacterController {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawKinematicCharacterController.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -7058,7 +7610,7 @@ var RawKinematicCharacterController = class _RawKinematicCharacterController {
   * @returns {RawVector}
   */
   up() {
-    const ret = rawkinematiccharactercontroller_up(this.ptr);
+    const ret = rawcharactercollision_translationDeltaApplied(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
@@ -7066,33 +7618,33 @@ var RawKinematicCharacterController = class _RawKinematicCharacterController {
   */
   setUp(vector) {
     _assertClass(vector, RawVector);
-    rawkinematiccharactercontroller_setUp(this.ptr, vector.ptr);
+    rawkinematiccharactercontroller_setUp(this.__wbg_ptr, vector.__wbg_ptr);
   }
   /**
   * @returns {number}
   */
   offset() {
-    const ret = rawkinematiccharactercontroller_offset(this.ptr);
+    const ret = rawkinematiccharactercontroller_offset(this.__wbg_ptr);
     return ret;
   }
   /**
   * @param {number} value
   */
   setOffset(value) {
-    rawkinematiccharactercontroller_setOffset(this.ptr, value);
+    rawkinematiccharactercontroller_setOffset(this.__wbg_ptr, value);
   }
   /**
   * @returns {boolean}
   */
   slideEnabled() {
-    const ret = rawkinematiccharactercontroller_slideEnabled(this.ptr);
+    const ret = rawkinematiccharactercontroller_slideEnabled(this.__wbg_ptr);
     return ret !== 0;
   }
   /**
   * @param {boolean} enabled
   */
   setSlideEnabled(enabled) {
-    rawkinematiccharactercontroller_setSlideEnabled(this.ptr, enabled);
+    rawkinematiccharactercontroller_setSlideEnabled(this.__wbg_ptr, enabled);
   }
   /**
   * @returns {number | undefined}
@@ -7100,7 +7652,7 @@ var RawKinematicCharacterController = class _RawKinematicCharacterController {
   autostepMaxHeight() {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawkinematiccharactercontroller_autostepMaxHeight(retptr, this.ptr);
+      rawkinematiccharactercontroller_autostepMaxHeight(retptr, this.__wbg_ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getFloat32Memory0()[retptr / 4 + 1];
       return r0 === 0 ? void 0 : r1;
@@ -7114,7 +7666,7 @@ var RawKinematicCharacterController = class _RawKinematicCharacterController {
   autostepMinWidth() {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawkinematiccharactercontroller_autostepMinWidth(retptr, this.ptr);
+      rawkinematiccharactercontroller_autostepMinWidth(retptr, this.__wbg_ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getFloat32Memory0()[retptr / 4 + 1];
       return r0 === 0 ? void 0 : r1;
@@ -7126,14 +7678,14 @@ var RawKinematicCharacterController = class _RawKinematicCharacterController {
   * @returns {boolean | undefined}
   */
   autostepIncludesDynamicBodies() {
-    const ret = rawkinematiccharactercontroller_autostepIncludesDynamicBodies(this.ptr);
+    const ret = rawkinematiccharactercontroller_autostepIncludesDynamicBodies(this.__wbg_ptr);
     return ret === 16777215 ? void 0 : ret !== 0;
   }
   /**
   * @returns {boolean}
   */
   autostepEnabled() {
-    const ret = rawkinematiccharactercontroller_autostepEnabled(this.ptr);
+    const ret = rawkinematiccharactercontroller_autostepEnabled(this.__wbg_ptr);
     return ret !== 0;
   }
   /**
@@ -7142,38 +7694,38 @@ var RawKinematicCharacterController = class _RawKinematicCharacterController {
   * @param {boolean} includeDynamicBodies
   */
   enableAutostep(maxHeight, minWidth, includeDynamicBodies) {
-    rawkinematiccharactercontroller_enableAutostep(this.ptr, maxHeight, minWidth, includeDynamicBodies);
+    rawkinematiccharactercontroller_enableAutostep(this.__wbg_ptr, maxHeight, minWidth, includeDynamicBodies);
   }
   /**
   */
   disableAutostep() {
-    rawkinematiccharactercontroller_disableAutostep(this.ptr);
+    rawkinematiccharactercontroller_disableAutostep(this.__wbg_ptr);
   }
   /**
   * @returns {number}
   */
   maxSlopeClimbAngle() {
-    const ret = rawkinematiccharactercontroller_maxSlopeClimbAngle(this.ptr);
+    const ret = rawkinematiccharactercontroller_maxSlopeClimbAngle(this.__wbg_ptr);
     return ret;
   }
   /**
   * @param {number} angle
   */
   setMaxSlopeClimbAngle(angle2) {
-    rawkinematiccharactercontroller_setMaxSlopeClimbAngle(this.ptr, angle2);
+    rawkinematiccharactercontroller_setMaxSlopeClimbAngle(this.__wbg_ptr, angle2);
   }
   /**
   * @returns {number}
   */
   minSlopeSlideAngle() {
-    const ret = rawkinematiccharactercontroller_minSlopeSlideAngle(this.ptr);
+    const ret = rawkinematiccharactercontroller_minSlopeSlideAngle(this.__wbg_ptr);
     return ret;
   }
   /**
   * @param {number} angle
   */
   setMinSlopeSlideAngle(angle2) {
-    rawkinematiccharactercontroller_setMinSlopeSlideAngle(this.ptr, angle2);
+    rawkinematiccharactercontroller_setMinSlopeSlideAngle(this.__wbg_ptr, angle2);
   }
   /**
   * @returns {number | undefined}
@@ -7181,7 +7733,7 @@ var RawKinematicCharacterController = class _RawKinematicCharacterController {
   snapToGroundDistance() {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawkinematiccharactercontroller_snapToGroundDistance(retptr, this.ptr);
+      rawkinematiccharactercontroller_snapToGroundDistance(retptr, this.__wbg_ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getFloat32Memory0()[retptr / 4 + 1];
       return r0 === 0 ? void 0 : r1;
@@ -7193,18 +7745,18 @@ var RawKinematicCharacterController = class _RawKinematicCharacterController {
   * @param {number} distance
   */
   enableSnapToGround(distance3) {
-    rawkinematiccharactercontroller_enableSnapToGround(this.ptr, distance3);
+    rawkinematiccharactercontroller_enableSnapToGround(this.__wbg_ptr, distance3);
   }
   /**
   */
   disableSnapToGround() {
-    rawkinematiccharactercontroller_disableSnapToGround(this.ptr);
+    rawkinematiccharactercontroller_disableSnapToGround(this.__wbg_ptr);
   }
   /**
   * @returns {boolean}
   */
   snapToGroundEnabled() {
-    const ret = rawkinematiccharactercontroller_snapToGroundEnabled(this.ptr);
+    const ret = rawkinematiccharactercontroller_snapToGroundEnabled(this.__wbg_ptr);
     return ret !== 0;
   }
   /**
@@ -7213,20 +7765,20 @@ var RawKinematicCharacterController = class _RawKinematicCharacterController {
   * @param {RawColliderSet} colliders
   * @param {RawQueryPipeline} queries
   * @param {number} collider_handle
-  * @param {RawVector} desired_translation
+  * @param {RawVector} desired_translation_delta
   * @param {boolean} apply_impulses_to_dynamic_bodies
   * @param {number | undefined} character_mass
   * @param {number} filter_flags
   * @param {number | undefined} filter_groups
   * @param {Function} filter_predicate
   */
-  computeColliderMovement(dt, bodies, colliders, queries, collider_handle, desired_translation, apply_impulses_to_dynamic_bodies, character_mass, filter_flags, filter_groups, filter_predicate) {
+  computeColliderMovement(dt, bodies, colliders, queries, collider_handle, desired_translation_delta, apply_impulses_to_dynamic_bodies, character_mass, filter_flags, filter_groups, filter_predicate) {
     try {
       _assertClass(bodies, RawRigidBodySet);
       _assertClass(colliders, RawColliderSet);
       _assertClass(queries, RawQueryPipeline);
-      _assertClass(desired_translation, RawVector);
-      rawkinematiccharactercontroller_computeColliderMovement(this.ptr, dt, bodies.ptr, colliders.ptr, queries.ptr, collider_handle, desired_translation.ptr, apply_impulses_to_dynamic_bodies, !isLikeNone(character_mass), isLikeNone(character_mass) ? 0 : character_mass, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, addBorrowedObject(filter_predicate));
+      _assertClass(desired_translation_delta, RawVector);
+      rawkinematiccharactercontroller_computeColliderMovement(this.__wbg_ptr, dt, bodies.__wbg_ptr, colliders.__wbg_ptr, queries.__wbg_ptr, collider_handle, desired_translation_delta.__wbg_ptr, apply_impulses_to_dynamic_bodies, !isLikeNone(character_mass), isLikeNone(character_mass) ? 0 : character_mass, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, addBorrowedObject(filter_predicate));
     } finally {
       heap[stack_pointer++] = void 0;
     }
@@ -7235,21 +7787,21 @@ var RawKinematicCharacterController = class _RawKinematicCharacterController {
   * @returns {RawVector}
   */
   computedMovement() {
-    const ret = rawkinematiccharactercontroller_computedMovement(this.ptr);
+    const ret = rawkinematiccharactercontroller_computedMovement(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {boolean}
   */
   computedGrounded() {
-    const ret = rawkinematiccharactercontroller_computedGrounded(this.ptr);
+    const ret = rawkinematiccharactercontroller_computedGrounded(this.__wbg_ptr);
     return ret !== 0;
   }
   /**
   * @returns {number}
   */
   numComputedCollisions() {
-    const ret = rawkinematiccharactercontroller_numComputedCollisions(this.ptr);
+    const ret = rawkinematiccharactercontroller_numComputedCollisions(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
@@ -7259,19 +7811,20 @@ var RawKinematicCharacterController = class _RawKinematicCharacterController {
   */
   computedCollision(i, collision) {
     _assertClass(collision, RawCharacterCollision);
-    const ret = rawkinematiccharactercontroller_computedCollision(this.ptr, i, collision.ptr);
+    const ret = rawkinematiccharactercontroller_computedCollision(this.__wbg_ptr, i, collision.__wbg_ptr);
     return ret !== 0;
   }
 };
 var RawMultibodyJointSet = class _RawMultibodyJointSet {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawMultibodyJointSet.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -7284,7 +7837,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   * @returns {number}
   */
   jointType(handle) {
-    const ret = rawmultibodyjointset_jointType(this.ptr, handle);
+    const ret = rawmultibodyjointset_jointType(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -7293,7 +7846,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   * @returns {RawRotation}
   */
   jointFrameX1(handle) {
-    const ret = rawmultibodyjointset_jointFrameX1(this.ptr, handle);
+    const ret = rawmultibodyjointset_jointFrameX1(this.__wbg_ptr, handle);
     return RawRotation.__wrap(ret);
   }
   /**
@@ -7302,7 +7855,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   * @returns {RawRotation}
   */
   jointFrameX2(handle) {
-    const ret = rawmultibodyjointset_jointFrameX2(this.ptr, handle);
+    const ret = rawmultibodyjointset_jointFrameX2(this.__wbg_ptr, handle);
     return RawRotation.__wrap(ret);
   }
   /**
@@ -7314,7 +7867,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   * @returns {RawVector}
   */
   jointAnchor1(handle) {
-    const ret = rawmultibodyjointset_jointAnchor1(this.ptr, handle);
+    const ret = rawmultibodyjointset_jointAnchor1(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -7326,7 +7879,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   * @returns {RawVector}
   */
   jointAnchor2(handle) {
-    const ret = rawmultibodyjointset_jointAnchor2(this.ptr, handle);
+    const ret = rawmultibodyjointset_jointAnchor2(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -7335,7 +7888,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   * @returns {boolean}
   */
   jointContactsEnabled(handle) {
-    const ret = rawmultibodyjointset_jointContactsEnabled(this.ptr, handle);
+    const ret = rawmultibodyjointset_jointContactsEnabled(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -7344,7 +7897,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   * @param {boolean} enabled
   */
   jointSetContactsEnabled(handle, enabled) {
-    rawmultibodyjointset_jointSetContactsEnabled(this.ptr, handle, enabled);
+    rawmultibodyjointset_jointSetContactsEnabled(this.__wbg_ptr, handle, enabled);
   }
   /**
   * Are the limits for this joint enabled?
@@ -7353,7 +7906,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   * @returns {boolean}
   */
   jointLimitsEnabled(handle, axis) {
-    const ret = rawmultibodyjointset_jointLimitsEnabled(this.ptr, handle, axis);
+    const ret = rawmultibodyjointset_jointLimitsEnabled(this.__wbg_ptr, handle, axis);
     return ret !== 0;
   }
   /**
@@ -7363,7 +7916,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   * @returns {number}
   */
   jointLimitsMin(handle, axis) {
-    const ret = rawmultibodyjointset_jointLimitsMin(this.ptr, handle, axis);
+    const ret = rawmultibodyjointset_jointLimitsMin(this.__wbg_ptr, handle, axis);
     return ret;
   }
   /**
@@ -7373,7 +7926,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   * @returns {number}
   */
   jointLimitsMax(handle, axis) {
-    const ret = rawmultibodyjointset_jointLimitsMax(this.ptr, handle, axis);
+    const ret = rawmultibodyjointset_jointLimitsMax(this.__wbg_ptr, handle, axis);
     return ret;
   }
   /**
@@ -7391,7 +7944,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   */
   createJoint(params, parent1, parent2, wakeUp) {
     _assertClass(params, RawGenericJoint);
-    const ret = rawmultibodyjointset_createJoint(this.ptr, params.ptr, parent1, parent2, wakeUp);
+    const ret = rawmultibodyjointset_createJoint(this.__wbg_ptr, params.__wbg_ptr, parent1, parent2, wakeUp);
     return ret;
   }
   /**
@@ -7399,14 +7952,14 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   * @param {boolean} wakeUp
   */
   remove(handle, wakeUp) {
-    rawmultibodyjointset_remove(this.ptr, handle, wakeUp);
+    rawmultibodyjointset_remove(this.__wbg_ptr, handle, wakeUp);
   }
   /**
   * @param {number} handle
   * @returns {boolean}
   */
   contains(handle) {
-    const ret = rawmultibodyjointset_contains(this.ptr, handle);
+    const ret = rawmultibodyjointset_contains(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -7418,7 +7971,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   */
   forEachJointHandle(f) {
     try {
-      rawmultibodyjointset_forEachJointHandle(this.ptr, addBorrowedObject(f));
+      rawmultibodyjointset_forEachJointHandle(this.__wbg_ptr, addBorrowedObject(f));
     } finally {
       heap[stack_pointer++] = void 0;
     }
@@ -7433,7 +7986,7 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
   */
   forEachJointAttachedToRigidBody(body, f) {
     try {
-      rawmultibodyjointset_forEachJointAttachedToRigidBody(this.ptr, body, addBorrowedObject(f));
+      rawmultibodyjointset_forEachJointAttachedToRigidBody(this.__wbg_ptr, body, addBorrowedObject(f));
     } finally {
       heap[stack_pointer++] = void 0;
     }
@@ -7441,13 +7994,14 @@ var RawMultibodyJointSet = class _RawMultibodyJointSet {
 };
 var RawNarrowPhase = class _RawNarrowPhase {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawNarrowPhase.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -7465,7 +8019,7 @@ var RawNarrowPhase = class _RawNarrowPhase {
   * @param {Function} f
   */
   contacts_with(handle1, f) {
-    rawnarrowphase_contacts_with(this.ptr, handle1, addHeapObject(f));
+    rawnarrowphase_contacts_with(this.__wbg_ptr, handle1, addHeapObject(f));
   }
   /**
   * @param {number} handle1
@@ -7473,7 +8027,7 @@ var RawNarrowPhase = class _RawNarrowPhase {
   * @returns {RawContactPair | undefined}
   */
   contact_pair(handle1, handle2) {
-    const ret = rawnarrowphase_contact_pair(this.ptr, handle1, handle2);
+    const ret = rawnarrowphase_contact_pair(this.__wbg_ptr, handle1, handle2);
     return ret === 0 ? void 0 : RawContactPair.__wrap(ret);
   }
   /**
@@ -7481,7 +8035,7 @@ var RawNarrowPhase = class _RawNarrowPhase {
   * @param {Function} f
   */
   intersections_with(handle1, f) {
-    rawnarrowphase_intersections_with(this.ptr, handle1, addHeapObject(f));
+    rawnarrowphase_intersections_with(this.__wbg_ptr, handle1, addHeapObject(f));
   }
   /**
   * @param {number} handle1
@@ -7489,19 +8043,20 @@ var RawNarrowPhase = class _RawNarrowPhase {
   * @returns {boolean}
   */
   intersection_pair(handle1, handle2) {
-    const ret = rawnarrowphase_intersection_pair(this.ptr, handle1, handle2);
+    const ret = rawnarrowphase_intersection_pair(this.__wbg_ptr, handle1, handle2);
     return ret !== 0;
   }
 };
 var RawPhysicsPipeline = class _RawPhysicsPipeline {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawPhysicsPipeline.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -7537,7 +8092,7 @@ var RawPhysicsPipeline = class _RawPhysicsPipeline {
     _assertClass(joints, RawImpulseJointSet);
     _assertClass(articulations, RawMultibodyJointSet);
     _assertClass(ccd_solver, RawCCDSolver);
-    rawphysicspipeline_step(this.ptr, gravity.ptr, integrationParameters.ptr, islands.ptr, broadPhase.ptr, narrowPhase.ptr, bodies.ptr, colliders.ptr, joints.ptr, articulations.ptr, ccd_solver.ptr);
+    rawphysicspipeline_step(this.__wbg_ptr, gravity.__wbg_ptr, integrationParameters.__wbg_ptr, islands.__wbg_ptr, broadPhase.__wbg_ptr, narrowPhase.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, joints.__wbg_ptr, articulations.__wbg_ptr, ccd_solver.__wbg_ptr);
   }
   /**
   * @param {RawVector} gravity
@@ -7567,18 +8122,19 @@ var RawPhysicsPipeline = class _RawPhysicsPipeline {
     _assertClass(articulations, RawMultibodyJointSet);
     _assertClass(ccd_solver, RawCCDSolver);
     _assertClass(eventQueue, RawEventQueue);
-    rawphysicspipeline_stepWithEvents(this.ptr, gravity.ptr, integrationParameters.ptr, islands.ptr, broadPhase.ptr, narrowPhase.ptr, bodies.ptr, colliders.ptr, joints.ptr, articulations.ptr, ccd_solver.ptr, eventQueue.ptr, addHeapObject(hookObject), addHeapObject(hookFilterContactPair), addHeapObject(hookFilterIntersectionPair));
+    rawphysicspipeline_stepWithEvents(this.__wbg_ptr, gravity.__wbg_ptr, integrationParameters.__wbg_ptr, islands.__wbg_ptr, broadPhase.__wbg_ptr, narrowPhase.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, joints.__wbg_ptr, articulations.__wbg_ptr, ccd_solver.__wbg_ptr, eventQueue.__wbg_ptr, addHeapObject(hookObject), addHeapObject(hookFilterContactPair), addHeapObject(hookFilterIntersectionPair));
   }
 };
 var RawPointColliderProjection = class _RawPointColliderProjection {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawPointColliderProjection.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -7589,28 +8145,28 @@ var RawPointColliderProjection = class _RawPointColliderProjection {
   * @returns {number}
   */
   colliderHandle() {
-    const ret = rawpointcolliderprojection_colliderHandle(this.ptr);
+    const ret = rawpointcolliderprojection_colliderHandle(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {RawVector}
   */
   point() {
-    const ret = rawkinematiccharactercontroller_computedMovement(this.ptr);
+    const ret = rawpointcolliderprojection_point(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {boolean}
   */
   isInside() {
-    const ret = rawkinematiccharactercontroller_computedGrounded(this.ptr);
+    const ret = rawpointcolliderprojection_isInside(this.__wbg_ptr);
     return ret !== 0;
   }
   /**
   * @returns {number}
   */
   featureType() {
-    const ret = rawpointcolliderprojection_featureType(this.ptr);
+    const ret = rawpointcolliderprojection_featureType(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
@@ -7619,7 +8175,7 @@ var RawPointColliderProjection = class _RawPointColliderProjection {
   featureId() {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawpointcolliderprojection_featureId(retptr, this.ptr);
+      rawpointcolliderprojection_featureId(retptr, this.__wbg_ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       return r0 === 0 ? void 0 : r1 >>> 0;
@@ -7630,13 +8186,14 @@ var RawPointColliderProjection = class _RawPointColliderProjection {
 };
 var RawPointProjection = class _RawPointProjection {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawPointProjection.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -7647,26 +8204,27 @@ var RawPointProjection = class _RawPointProjection {
   * @returns {RawVector}
   */
   point() {
-    const ret = rawkinematiccharactercontroller_computedMovement(this.ptr);
+    const ret = rawpointprojection_point(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {boolean}
   */
   isInside() {
-    const ret = rawkinematiccharactercontroller_computedGrounded(this.ptr);
+    const ret = rawpointprojection_isInside(this.__wbg_ptr);
     return ret !== 0;
   }
 };
 var RawQueryPipeline = class _RawQueryPipeline {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawQueryPipeline.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -7686,7 +8244,7 @@ var RawQueryPipeline = class _RawQueryPipeline {
   update(bodies, colliders) {
     _assertClass(bodies, RawRigidBodySet);
     _assertClass(colliders, RawColliderSet);
-    rawquerypipeline_update(this.ptr, bodies.ptr, colliders.ptr);
+    rawquerypipeline_update(this.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr);
   }
   /**
   * @param {RawRigidBodySet} bodies
@@ -7708,7 +8266,7 @@ var RawQueryPipeline = class _RawQueryPipeline {
       _assertClass(colliders, RawColliderSet);
       _assertClass(rayOrig, RawVector);
       _assertClass(rayDir, RawVector);
-      const ret = rawquerypipeline_castRay(this.ptr, bodies.ptr, colliders.ptr, rayOrig.ptr, rayDir.ptr, maxToi, solid, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
+      const ret = rawquerypipeline_castRay(this.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, rayOrig.__wbg_ptr, rayDir.__wbg_ptr, maxToi, solid, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
       return ret === 0 ? void 0 : RawRayColliderToi.__wrap(ret);
     } finally {
       heap[stack_pointer++] = void 0;
@@ -7734,7 +8292,7 @@ var RawQueryPipeline = class _RawQueryPipeline {
       _assertClass(colliders, RawColliderSet);
       _assertClass(rayOrig, RawVector);
       _assertClass(rayDir, RawVector);
-      const ret = rawquerypipeline_castRayAndGetNormal(this.ptr, bodies.ptr, colliders.ptr, rayOrig.ptr, rayDir.ptr, maxToi, solid, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
+      const ret = rawquerypipeline_castRayAndGetNormal(this.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, rayOrig.__wbg_ptr, rayDir.__wbg_ptr, maxToi, solid, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
       return ret === 0 ? void 0 : RawRayColliderIntersection.__wrap(ret);
     } finally {
       heap[stack_pointer++] = void 0;
@@ -7760,7 +8318,7 @@ var RawQueryPipeline = class _RawQueryPipeline {
       _assertClass(colliders, RawColliderSet);
       _assertClass(rayOrig, RawVector);
       _assertClass(rayDir, RawVector);
-      rawquerypipeline_intersectionsWithRay(this.ptr, bodies.ptr, colliders.ptr, rayOrig.ptr, rayDir.ptr, maxToi, solid, addBorrowedObject(callback), filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
+      rawquerypipeline_intersectionsWithRay(this.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, rayOrig.__wbg_ptr, rayDir.__wbg_ptr, maxToi, solid, addBorrowedObject(callback), filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
     } finally {
       heap[stack_pointer++] = void 0;
       heap[stack_pointer++] = void 0;
@@ -7787,7 +8345,7 @@ var RawQueryPipeline = class _RawQueryPipeline {
       _assertClass(shapePos, RawVector);
       _assertClass(shapeRot, RawRotation);
       _assertClass(shape, RawShape);
-      rawquerypipeline_intersectionWithShape(retptr, this.ptr, bodies.ptr, colliders.ptr, shapePos.ptr, shapeRot.ptr, shape.ptr, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
+      rawquerypipeline_intersectionWithShape(retptr, this.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, shapePos.__wbg_ptr, shapeRot.__wbg_ptr, shape.__wbg_ptr, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r2 = getFloat64Memory0()[retptr / 8 + 1];
       return r0 === 0 ? void 0 : r2;
@@ -7813,7 +8371,7 @@ var RawQueryPipeline = class _RawQueryPipeline {
       _assertClass(bodies, RawRigidBodySet);
       _assertClass(colliders, RawColliderSet);
       _assertClass(point, RawVector);
-      const ret = rawquerypipeline_projectPoint(this.ptr, bodies.ptr, colliders.ptr, point.ptr, solid, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
+      const ret = rawquerypipeline_projectPoint(this.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, point.__wbg_ptr, solid, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
       return ret === 0 ? void 0 : RawPointColliderProjection.__wrap(ret);
     } finally {
       heap[stack_pointer++] = void 0;
@@ -7835,7 +8393,7 @@ var RawQueryPipeline = class _RawQueryPipeline {
       _assertClass(bodies, RawRigidBodySet);
       _assertClass(colliders, RawColliderSet);
       _assertClass(point, RawVector);
-      const ret = rawquerypipeline_projectPointAndGetFeature(this.ptr, bodies.ptr, colliders.ptr, point.ptr, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
+      const ret = rawquerypipeline_projectPointAndGetFeature(this.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, point.__wbg_ptr, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
       return ret === 0 ? void 0 : RawPointColliderProjection.__wrap(ret);
     } finally {
       heap[stack_pointer++] = void 0;
@@ -7857,7 +8415,7 @@ var RawQueryPipeline = class _RawQueryPipeline {
       _assertClass(bodies, RawRigidBodySet);
       _assertClass(colliders, RawColliderSet);
       _assertClass(point, RawVector);
-      rawquerypipeline_intersectionsWithPoint(this.ptr, bodies.ptr, colliders.ptr, point.ptr, addBorrowedObject(callback), filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
+      rawquerypipeline_intersectionsWithPoint(this.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, point.__wbg_ptr, addBorrowedObject(callback), filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
     } finally {
       heap[stack_pointer++] = void 0;
       heap[stack_pointer++] = void 0;
@@ -7887,7 +8445,7 @@ var RawQueryPipeline = class _RawQueryPipeline {
       _assertClass(shapeRot, RawRotation);
       _assertClass(shapeVel, RawVector);
       _assertClass(shape, RawShape);
-      const ret = rawquerypipeline_castShape(this.ptr, bodies.ptr, colliders.ptr, shapePos.ptr, shapeRot.ptr, shapeVel.ptr, shape.ptr, maxToi, stop_at_penetration, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
+      const ret = rawquerypipeline_castShape(this.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, shapePos.__wbg_ptr, shapeRot.__wbg_ptr, shapeVel.__wbg_ptr, shape.__wbg_ptr, maxToi, stop_at_penetration, filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
       return ret === 0 ? void 0 : RawShapeColliderTOI.__wrap(ret);
     } finally {
       heap[stack_pointer++] = void 0;
@@ -7913,7 +8471,7 @@ var RawQueryPipeline = class _RawQueryPipeline {
       _assertClass(shapePos, RawVector);
       _assertClass(shapeRot, RawRotation);
       _assertClass(shape, RawShape);
-      rawquerypipeline_intersectionsWithShape(this.ptr, bodies.ptr, colliders.ptr, shapePos.ptr, shapeRot.ptr, shape.ptr, addBorrowedObject(callback), filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
+      rawquerypipeline_intersectionsWithShape(this.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, shapePos.__wbg_ptr, shapeRot.__wbg_ptr, shape.__wbg_ptr, addBorrowedObject(callback), filter_flags, !isLikeNone(filter_groups), isLikeNone(filter_groups) ? 0 : filter_groups, !isLikeNone(filter_exclude_collider), isLikeNone(filter_exclude_collider) ? 0 : filter_exclude_collider, !isLikeNone(filter_exclude_rigid_body), isLikeNone(filter_exclude_rigid_body) ? 0 : filter_exclude_rigid_body, addBorrowedObject(filter_predicate));
     } finally {
       heap[stack_pointer++] = void 0;
       heap[stack_pointer++] = void 0;
@@ -7928,7 +8486,7 @@ var RawQueryPipeline = class _RawQueryPipeline {
     try {
       _assertClass(aabbCenter, RawVector);
       _assertClass(aabbHalfExtents, RawVector);
-      rawquerypipeline_collidersWithAabbIntersectingAabb(this.ptr, aabbCenter.ptr, aabbHalfExtents.ptr, addBorrowedObject(callback));
+      rawquerypipeline_collidersWithAabbIntersectingAabb(this.__wbg_ptr, aabbCenter.__wbg_ptr, aabbHalfExtents.__wbg_ptr, addBorrowedObject(callback));
     } finally {
       heap[stack_pointer++] = void 0;
     }
@@ -7936,13 +8494,14 @@ var RawQueryPipeline = class _RawQueryPipeline {
 };
 var RawRayColliderIntersection = class _RawRayColliderIntersection {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawRayColliderIntersection.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -7953,28 +8512,28 @@ var RawRayColliderIntersection = class _RawRayColliderIntersection {
   * @returns {number}
   */
   colliderHandle() {
-    const ret = rawcharactercollision_handle(this.ptr);
+    const ret = rawpointcolliderprojection_colliderHandle(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {RawVector}
   */
   normal() {
-    const ret = rawraycolliderintersection_normal(this.ptr);
+    const ret = rawraycolliderintersection_normal(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {number}
   */
   toi() {
-    const ret = rawraycolliderintersection_toi(this.ptr);
+    const ret = rawintegrationparameters_erp(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {number}
   */
   featureType() {
-    const ret = rawraycolliderintersection_featureType(this.ptr);
+    const ret = rawpointcolliderprojection_featureType(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
@@ -7983,7 +8542,7 @@ var RawRayColliderIntersection = class _RawRayColliderIntersection {
   featureId() {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawraycolliderintersection_featureId(retptr, this.ptr);
+      rawpointcolliderprojection_featureId(retptr, this.__wbg_ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       return r0 === 0 ? void 0 : r1 >>> 0;
@@ -7994,13 +8553,14 @@ var RawRayColliderIntersection = class _RawRayColliderIntersection {
 };
 var RawRayColliderToi = class _RawRayColliderToi {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawRayColliderToi.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -8011,26 +8571,27 @@ var RawRayColliderToi = class _RawRayColliderToi {
   * @returns {number}
   */
   colliderHandle() {
-    const ret = rawcharactercollision_handle(this.ptr);
+    const ret = rawcharactercollision_handle(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {number}
   */
   toi() {
-    const ret = rawcharactercollision_toi(this.ptr);
+    const ret = rawintegrationparameters_erp(this.__wbg_ptr);
     return ret;
   }
 };
 var RawRayIntersection = class _RawRayIntersection {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawRayIntersection.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -8041,21 +8602,21 @@ var RawRayIntersection = class _RawRayIntersection {
   * @returns {RawVector}
   */
   normal() {
-    const ret = rawcharactercollision_worldWitness1(this.ptr);
+    const ret = rawraycolliderintersection_normal(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {number}
   */
   toi() {
-    const ret = rawcharactercollision_toi(this.ptr);
+    const ret = rawintegrationparameters_erp(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {number}
   */
   featureType() {
-    const ret = rawrayintersection_featureType(this.ptr);
+    const ret = rawpointcolliderprojection_featureType(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
@@ -8064,7 +8625,7 @@ var RawRayIntersection = class _RawRayIntersection {
   featureId() {
     try {
       const retptr = __wbindgen_add_to_stack_pointer(-16);
-      rawrayintersection_featureId(retptr, this.ptr);
+      rawpointcolliderprojection_featureId(retptr, this.__wbg_ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       return r0 === 0 ? void 0 : r1 >>> 0;
@@ -8075,13 +8636,14 @@ var RawRayIntersection = class _RawRayIntersection {
 };
 var RawRigidBodySet = class _RawRigidBodySet {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawRigidBodySet.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -8094,7 +8656,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawVector}
   */
   rbTranslation(handle) {
-    const ret = rawrigidbodyset_rbTranslation(this.ptr, handle);
+    const ret = rawrigidbodyset_rbTranslation(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -8103,7 +8665,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawRotation}
   */
   rbRotation(handle) {
-    const ret = rawrigidbodyset_rbRotation(this.ptr, handle);
+    const ret = rawrigidbodyset_rbRotation(this.__wbg_ptr, handle);
     return RawRotation.__wrap(ret);
   }
   /**
@@ -8111,7 +8673,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {number} handle
   */
   rbSleep(handle) {
-    rawrigidbodyset_rbSleep(this.ptr, handle);
+    rawrigidbodyset_rbSleep(this.__wbg_ptr, handle);
   }
   /**
   * Is this rigid-body sleeping?
@@ -8119,7 +8681,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {boolean}
   */
   rbIsSleeping(handle) {
-    const ret = rawrigidbodyset_rbIsSleeping(this.ptr, handle);
+    const ret = rawrigidbodyset_rbIsSleeping(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -8128,7 +8690,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {boolean}
   */
   rbIsMoving(handle) {
-    const ret = rawrigidbodyset_rbIsMoving(this.ptr, handle);
+    const ret = rawrigidbodyset_rbIsMoving(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -8141,7 +8703,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawVector}
   */
   rbNextTranslation(handle) {
-    const ret = rawrigidbodyset_rbNextTranslation(this.ptr, handle);
+    const ret = rawrigidbodyset_rbNextTranslation(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -8154,7 +8716,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawRotation}
   */
   rbNextRotation(handle) {
-    const ret = rawrigidbodyset_rbNextRotation(this.ptr, handle);
+    const ret = rawrigidbodyset_rbNextRotation(this.__wbg_ptr, handle);
     return RawRotation.__wrap(ret);
   }
   /**
@@ -8173,7 +8735,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {boolean} wakeUp
   */
   rbSetTranslation(handle, x, y, z, wakeUp) {
-    rawrigidbodyset_rbSetTranslation(this.ptr, handle, x, y, z, wakeUp);
+    rawrigidbodyset_rbSetTranslation(this.__wbg_ptr, handle, x, y, z, wakeUp);
   }
   /**
   * Sets the rotation quaternion of this rigid-body.
@@ -8195,7 +8757,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {boolean} wakeUp
   */
   rbSetRotation(handle, x, y, z, w, wakeUp) {
-    rawrigidbodyset_rbSetRotation(this.ptr, handle, x, y, z, w, wakeUp);
+    rawrigidbodyset_rbSetRotation(this.__wbg_ptr, handle, x, y, z, w, wakeUp);
   }
   /**
   * Sets the linear velocity of this rigid-body.
@@ -8205,7 +8767,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   */
   rbSetLinvel(handle, linvel, wakeUp) {
     _assertClass(linvel, RawVector);
-    rawrigidbodyset_rbSetLinvel(this.ptr, handle, linvel.ptr, wakeUp);
+    rawrigidbodyset_rbSetLinvel(this.__wbg_ptr, handle, linvel.__wbg_ptr, wakeUp);
   }
   /**
   * Sets the angular velocity of this rigid-body.
@@ -8215,7 +8777,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   */
   rbSetAngvel(handle, angvel, wakeUp) {
     _assertClass(angvel, RawVector);
-    rawrigidbodyset_rbSetAngvel(this.ptr, handle, angvel.ptr, wakeUp);
+    rawrigidbodyset_rbSetAngvel(this.__wbg_ptr, handle, angvel.__wbg_ptr, wakeUp);
   }
   /**
   * If this rigid body is kinematic, sets its future translation after the next timestep integration.
@@ -8236,7 +8798,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {number} z
   */
   rbSetNextKinematicTranslation(handle, x, y, z) {
-    rawrigidbodyset_rbSetNextKinematicTranslation(this.ptr, handle, x, y, z);
+    rawrigidbodyset_rbSetNextKinematicTranslation(this.__wbg_ptr, handle, x, y, z);
   }
   /**
   * If this rigid body is kinematic, sets its future rotation after the next timestep integration.
@@ -8259,7 +8821,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {number} w
   */
   rbSetNextKinematicRotation(handle, x, y, z, w) {
-    rawrigidbodyset_rbSetNextKinematicRotation(this.ptr, handle, x, y, z, w);
+    rawrigidbodyset_rbSetNextKinematicRotation(this.__wbg_ptr, handle, x, y, z, w);
   }
   /**
   * @param {number} handle
@@ -8267,7 +8829,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   */
   rbRecomputeMassPropertiesFromColliders(handle, colliders) {
     _assertClass(colliders, RawColliderSet);
-    rawrigidbodyset_rbRecomputeMassPropertiesFromColliders(this.ptr, handle, colliders.ptr);
+    rawrigidbodyset_rbRecomputeMassPropertiesFromColliders(this.__wbg_ptr, handle, colliders.__wbg_ptr);
   }
   /**
   * @param {number} handle
@@ -8275,7 +8837,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {boolean} wake_up
   */
   rbSetAdditionalMass(handle, mass, wake_up) {
-    rawrigidbodyset_rbSetAdditionalMass(this.ptr, handle, mass, wake_up);
+    rawrigidbodyset_rbSetAdditionalMass(this.__wbg_ptr, handle, mass, wake_up);
   }
   /**
   * @param {number} handle
@@ -8289,7 +8851,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
     _assertClass(centerOfMass, RawVector);
     _assertClass(principalAngularInertia, RawVector);
     _assertClass(angularInertiaFrame, RawRotation);
-    rawrigidbodyset_rbSetAdditionalMassProperties(this.ptr, handle, mass, centerOfMass.ptr, principalAngularInertia.ptr, angularInertiaFrame.ptr, wake_up);
+    rawrigidbodyset_rbSetAdditionalMassProperties(this.__wbg_ptr, handle, mass, centerOfMass.__wbg_ptr, principalAngularInertia.__wbg_ptr, angularInertiaFrame.__wbg_ptr, wake_up);
   }
   /**
   * The linear velocity of this rigid-body.
@@ -8297,7 +8859,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawVector}
   */
   rbLinvel(handle) {
-    const ret = rawrigidbodyset_rbLinvel(this.ptr, handle);
+    const ret = rawrigidbodyset_rbLinvel(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -8306,7 +8868,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawVector}
   */
   rbAngvel(handle) {
-    const ret = rawrigidbodyset_rbAngvel(this.ptr, handle);
+    const ret = rawrigidbodyset_rbAngvel(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -8315,7 +8877,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {boolean} wake_up
   */
   rbLockTranslations(handle, locked, wake_up) {
-    rawrigidbodyset_rbLockTranslations(this.ptr, handle, locked, wake_up);
+    rawrigidbodyset_rbLockTranslations(this.__wbg_ptr, handle, locked, wake_up);
   }
   /**
   * @param {number} handle
@@ -8325,7 +8887,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {boolean} wake_up
   */
   rbSetEnabledTranslations(handle, allow_x, allow_y, allow_z, wake_up) {
-    rawrigidbodyset_rbSetEnabledTranslations(this.ptr, handle, allow_x, allow_y, allow_z, wake_up);
+    rawrigidbodyset_rbSetEnabledTranslations(this.__wbg_ptr, handle, allow_x, allow_y, allow_z, wake_up);
   }
   /**
   * @param {number} handle
@@ -8333,7 +8895,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {boolean} wake_up
   */
   rbLockRotations(handle, locked, wake_up) {
-    rawrigidbodyset_rbLockRotations(this.ptr, handle, locked, wake_up);
+    rawrigidbodyset_rbLockRotations(this.__wbg_ptr, handle, locked, wake_up);
   }
   /**
   * @param {number} handle
@@ -8343,14 +8905,14 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {boolean} wake_up
   */
   rbSetEnabledRotations(handle, allow_x, allow_y, allow_z, wake_up) {
-    rawrigidbodyset_rbSetEnabledRotations(this.ptr, handle, allow_x, allow_y, allow_z, wake_up);
+    rawrigidbodyset_rbSetEnabledRotations(this.__wbg_ptr, handle, allow_x, allow_y, allow_z, wake_up);
   }
   /**
   * @param {number} handle
   * @returns {number}
   */
   rbDominanceGroup(handle) {
-    const ret = rawrigidbodyset_rbDominanceGroup(this.ptr, handle);
+    const ret = rawrigidbodyset_rbDominanceGroup(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -8358,14 +8920,14 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {number} group
   */
   rbSetDominanceGroup(handle, group) {
-    rawrigidbodyset_rbSetDominanceGroup(this.ptr, handle, group);
+    rawrigidbodyset_rbSetDominanceGroup(this.__wbg_ptr, handle, group);
   }
   /**
   * @param {number} handle
   * @param {boolean} enabled
   */
   rbEnableCcd(handle, enabled) {
-    rawrigidbodyset_rbEnableCcd(this.ptr, handle, enabled);
+    rawrigidbodyset_rbEnableCcd(this.__wbg_ptr, handle, enabled);
   }
   /**
   * The mass of this rigid-body.
@@ -8373,7 +8935,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {number}
   */
   rbMass(handle) {
-    const ret = rawrigidbodyset_rbMass(this.ptr, handle);
+    const ret = rawrigidbodyset_rbMass(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -8384,7 +8946,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {number}
   */
   rbInvMass(handle) {
-    const ret = rawrigidbodyset_rbInvMass(this.ptr, handle);
+    const ret = rawrigidbodyset_rbInvMass(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -8393,7 +8955,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawVector}
   */
   rbEffectiveInvMass(handle) {
-    const ret = rawrigidbodyset_rbEffectiveInvMass(this.ptr, handle);
+    const ret = rawrigidbodyset_rbEffectiveInvMass(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -8402,7 +8964,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawVector}
   */
   rbLocalCom(handle) {
-    const ret = rawrigidbodyset_rbLocalCom(this.ptr, handle);
+    const ret = rawrigidbodyset_rbLocalCom(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -8411,7 +8973,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawVector}
   */
   rbWorldCom(handle) {
-    const ret = rawrigidbodyset_rbWorldCom(this.ptr, handle);
+    const ret = rawrigidbodyset_rbWorldCom(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -8422,7 +8984,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawVector}
   */
   rbInvPrincipalInertiaSqrt(handle) {
-    const ret = rawrigidbodyset_rbInvPrincipalInertiaSqrt(this.ptr, handle);
+    const ret = rawrigidbodyset_rbInvPrincipalInertiaSqrt(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -8431,7 +8993,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawRotation}
   */
   rbPrincipalInertiaLocalFrame(handle) {
-    const ret = rawrigidbodyset_rbPrincipalInertiaLocalFrame(this.ptr, handle);
+    const ret = rawrigidbodyset_rbPrincipalInertiaLocalFrame(this.__wbg_ptr, handle);
     return RawRotation.__wrap(ret);
   }
   /**
@@ -8440,7 +9002,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawVector}
   */
   rbPrincipalInertia(handle) {
-    const ret = rawrigidbodyset_rbPrincipalInertia(this.ptr, handle);
+    const ret = rawrigidbodyset_rbPrincipalInertia(this.__wbg_ptr, handle);
     return RawVector.__wrap(ret);
   }
   /**
@@ -8450,7 +9012,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawSdpMatrix3}
   */
   rbEffectiveWorldInvInertiaSqrt(handle) {
-    const ret = rawrigidbodyset_rbEffectiveWorldInvInertiaSqrt(this.ptr, handle);
+    const ret = rawrigidbodyset_rbEffectiveWorldInvInertiaSqrt(this.__wbg_ptr, handle);
     return RawSdpMatrix3.__wrap(ret);
   }
   /**
@@ -8460,7 +9022,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {RawSdpMatrix3}
   */
   rbEffectiveAngularInertia(handle) {
-    const ret = rawrigidbodyset_rbEffectiveAngularInertia(this.ptr, handle);
+    const ret = rawrigidbodyset_rbEffectiveAngularInertia(this.__wbg_ptr, handle);
     return RawSdpMatrix3.__wrap(ret);
   }
   /**
@@ -8474,7 +9036,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {number} handle
   */
   rbWakeUp(handle) {
-    rawrigidbodyset_rbWakeUp(this.ptr, handle);
+    rawrigidbodyset_rbWakeUp(this.__wbg_ptr, handle);
   }
   /**
   * Is Continuous Collision Detection enabled for this rigid-body?
@@ -8482,7 +9044,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {boolean}
   */
   rbIsCcdEnabled(handle) {
-    const ret = rawrigidbodyset_rbIsCcdEnabled(this.ptr, handle);
+    const ret = rawrigidbodyset_rbIsCcdEnabled(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -8491,7 +9053,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {number}
   */
   rbNumColliders(handle) {
-    const ret = rawrigidbodyset_rbNumColliders(this.ptr, handle);
+    const ret = rawrigidbodyset_rbNumColliders(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -8505,7 +9067,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {number}
   */
   rbCollider(handle, at) {
-    const ret = rawrigidbodyset_rbCollider(this.ptr, handle, at);
+    const ret = rawrigidbodyset_rbCollider(this.__wbg_ptr, handle, at);
     return ret;
   }
   /**
@@ -8514,7 +9076,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {number}
   */
   rbBodyType(handle) {
-    const ret = rawrigidbodyset_rbBodyType(this.ptr, handle);
+    const ret = rawrigidbodyset_rbBodyType(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -8524,7 +9086,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {boolean} wake_up
   */
   rbSetBodyType(handle, status, wake_up) {
-    rawrigidbodyset_rbSetBodyType(this.ptr, handle, status, wake_up);
+    rawrigidbodyset_rbSetBodyType(this.__wbg_ptr, handle, status, wake_up);
   }
   /**
   * Is this rigid-body fixed?
@@ -8532,7 +9094,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {boolean}
   */
   rbIsFixed(handle) {
-    const ret = rawrigidbodyset_rbIsFixed(this.ptr, handle);
+    const ret = rawrigidbodyset_rbIsFixed(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -8541,7 +9103,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {boolean}
   */
   rbIsKinematic(handle) {
-    const ret = rawrigidbodyset_rbIsKinematic(this.ptr, handle);
+    const ret = rawrigidbodyset_rbIsKinematic(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -8550,7 +9112,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {boolean}
   */
   rbIsDynamic(handle) {
-    const ret = rawrigidbodyset_rbIsDynamic(this.ptr, handle);
+    const ret = rawrigidbodyset_rbIsDynamic(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -8559,7 +9121,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {number}
   */
   rbLinearDamping(handle) {
-    const ret = rawrigidbodyset_rbLinearDamping(this.ptr, handle);
+    const ret = rawrigidbodyset_rbLinearDamping(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -8568,7 +9130,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {number}
   */
   rbAngularDamping(handle) {
-    const ret = rawrigidbodyset_rbAngularDamping(this.ptr, handle);
+    const ret = rawrigidbodyset_rbAngularDamping(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -8576,28 +9138,28 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {number} factor
   */
   rbSetLinearDamping(handle, factor) {
-    rawrigidbodyset_rbSetLinearDamping(this.ptr, handle, factor);
+    rawrigidbodyset_rbSetLinearDamping(this.__wbg_ptr, handle, factor);
   }
   /**
   * @param {number} handle
   * @param {number} factor
   */
   rbSetAngularDamping(handle, factor) {
-    rawrigidbodyset_rbSetAngularDamping(this.ptr, handle, factor);
+    rawrigidbodyset_rbSetAngularDamping(this.__wbg_ptr, handle, factor);
   }
   /**
   * @param {number} handle
   * @param {boolean} enabled
   */
   rbSetEnabled(handle, enabled) {
-    rawrigidbodyset_rbSetEnabled(this.ptr, handle, enabled);
+    rawrigidbodyset_rbSetEnabled(this.__wbg_ptr, handle, enabled);
   }
   /**
   * @param {number} handle
   * @returns {boolean}
   */
   rbIsEnabled(handle) {
-    const ret = rawrigidbodyset_rbIsEnabled(this.ptr, handle);
+    const ret = rawrigidbodyset_rbIsEnabled(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -8605,7 +9167,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {number}
   */
   rbGravityScale(handle) {
-    const ret = rawrigidbodyset_rbGravityScale(this.ptr, handle);
+    const ret = rawrigidbodyset_rbGravityScale(this.__wbg_ptr, handle);
     return ret;
   }
   /**
@@ -8614,7 +9176,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {boolean} wakeUp
   */
   rbSetGravityScale(handle, factor, wakeUp) {
-    rawrigidbodyset_rbSetGravityScale(this.ptr, handle, factor, wakeUp);
+    rawrigidbodyset_rbSetGravityScale(this.__wbg_ptr, handle, factor, wakeUp);
   }
   /**
   * Resets to zero all user-added forces added to this rigid-body.
@@ -8622,7 +9184,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {boolean} wakeUp
   */
   rbResetForces(handle, wakeUp) {
-    rawrigidbodyset_rbResetForces(this.ptr, handle, wakeUp);
+    rawrigidbodyset_rbResetForces(this.__wbg_ptr, handle, wakeUp);
   }
   /**
   * Resets to zero all user-added torques added to this rigid-body.
@@ -8630,7 +9192,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {boolean} wakeUp
   */
   rbResetTorques(handle, wakeUp) {
-    rawrigidbodyset_rbResetTorques(this.ptr, handle, wakeUp);
+    rawrigidbodyset_rbResetTorques(this.__wbg_ptr, handle, wakeUp);
   }
   /**
   * Adds a force at the center-of-mass of this rigid-body.
@@ -8644,7 +9206,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   */
   rbAddForce(handle, force, wakeUp) {
     _assertClass(force, RawVector);
-    rawrigidbodyset_rbAddForce(this.ptr, handle, force.ptr, wakeUp);
+    rawrigidbodyset_rbAddForce(this.__wbg_ptr, handle, force.__wbg_ptr, wakeUp);
   }
   /**
   * Applies an impulse at the center-of-mass of this rigid-body.
@@ -8658,7 +9220,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   */
   rbApplyImpulse(handle, impulse, wakeUp) {
     _assertClass(impulse, RawVector);
-    rawrigidbodyset_rbApplyImpulse(this.ptr, handle, impulse.ptr, wakeUp);
+    rawrigidbodyset_rbApplyImpulse(this.__wbg_ptr, handle, impulse.__wbg_ptr, wakeUp);
   }
   /**
   * Adds a torque at the center-of-mass of this rigid-body.
@@ -8672,7 +9234,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   */
   rbAddTorque(handle, torque, wakeUp) {
     _assertClass(torque, RawVector);
-    rawrigidbodyset_rbAddTorque(this.ptr, handle, torque.ptr, wakeUp);
+    rawrigidbodyset_rbAddTorque(this.__wbg_ptr, handle, torque.__wbg_ptr, wakeUp);
   }
   /**
   * Applies an impulsive torque at the center-of-mass of this rigid-body.
@@ -8686,7 +9248,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   */
   rbApplyTorqueImpulse(handle, torque_impulse, wakeUp) {
     _assertClass(torque_impulse, RawVector);
-    rawrigidbodyset_rbApplyTorqueImpulse(this.ptr, handle, torque_impulse.ptr, wakeUp);
+    rawrigidbodyset_rbApplyTorqueImpulse(this.__wbg_ptr, handle, torque_impulse.__wbg_ptr, wakeUp);
   }
   /**
   * Adds a force at the given world-space point of this rigid-body.
@@ -8703,7 +9265,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   rbAddForceAtPoint(handle, force, point, wakeUp) {
     _assertClass(force, RawVector);
     _assertClass(point, RawVector);
-    rawrigidbodyset_rbAddForceAtPoint(this.ptr, handle, force.ptr, point.ptr, wakeUp);
+    rawrigidbodyset_rbAddForceAtPoint(this.__wbg_ptr, handle, force.__wbg_ptr, point.__wbg_ptr, wakeUp);
   }
   /**
   * Applies an impulse at the given world-space point of this rigid-body.
@@ -8720,7 +9282,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   rbApplyImpulseAtPoint(handle, impulse, point, wakeUp) {
     _assertClass(impulse, RawVector);
     _assertClass(point, RawVector);
-    rawrigidbodyset_rbApplyImpulseAtPoint(this.ptr, handle, impulse.ptr, point.ptr, wakeUp);
+    rawrigidbodyset_rbApplyImpulseAtPoint(this.__wbg_ptr, handle, impulse.__wbg_ptr, point.__wbg_ptr, wakeUp);
   }
   /**
   * An arbitrary user-defined 32-bit integer
@@ -8728,7 +9290,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {number}
   */
   rbUserData(handle) {
-    const ret = rawrigidbodyset_rbUserData(this.ptr, handle);
+    const ret = rawrigidbodyset_rbUserData(this.__wbg_ptr, handle);
     return ret >>> 0;
   }
   /**
@@ -8740,7 +9302,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @param {number} data
   */
   rbSetUserData(handle, data) {
-    rawrigidbodyset_rbSetUserData(this.ptr, handle, data);
+    rawrigidbodyset_rbSetUserData(this.__wbg_ptr, handle, data);
   }
   /**
   */
@@ -8783,7 +9345,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
     _assertClass(angvel, RawVector);
     _assertClass(principalAngularInertia, RawVector);
     _assertClass(angularInertiaFrame, RawRotation);
-    const ret = rawrigidbodyset_createRigidBody(this.ptr, enabled, translation.ptr, rotation.ptr, gravityScale, mass, massOnly, centerOfMass.ptr, linvel.ptr, angvel.ptr, principalAngularInertia.ptr, angularInertiaFrame.ptr, translationEnabledX, translationEnabledY, translationEnabledZ, rotationEnabledX, rotationEnabledY, rotationEnabledZ, linearDamping, angularDamping, rb_type, canSleep, sleeping, ccdEnabled, dominanceGroup);
+    const ret = rawrigidbodyset_createRigidBody(this.__wbg_ptr, enabled, translation.__wbg_ptr, rotation.__wbg_ptr, gravityScale, mass, massOnly, centerOfMass.__wbg_ptr, linvel.__wbg_ptr, angvel.__wbg_ptr, principalAngularInertia.__wbg_ptr, angularInertiaFrame.__wbg_ptr, translationEnabledX, translationEnabledY, translationEnabledZ, rotationEnabledX, rotationEnabledY, rotationEnabledZ, linearDamping, angularDamping, rb_type, canSleep, sleeping, ccdEnabled, dominanceGroup);
     return ret;
   }
   /**
@@ -8798,14 +9360,14 @@ var RawRigidBodySet = class _RawRigidBodySet {
     _assertClass(colliders, RawColliderSet);
     _assertClass(joints, RawImpulseJointSet);
     _assertClass(articulations, RawMultibodyJointSet);
-    rawrigidbodyset_remove(this.ptr, handle, islands.ptr, colliders.ptr, joints.ptr, articulations.ptr);
+    rawrigidbodyset_remove(this.__wbg_ptr, handle, islands.__wbg_ptr, colliders.__wbg_ptr, joints.__wbg_ptr, articulations.__wbg_ptr);
   }
   /**
   * The number of rigid-bodies on this set.
   * @returns {number}
   */
   len() {
-    const ret = rawrigidbodyset_len(this.ptr);
+    const ret = rawcolliderset_len(this.__wbg_ptr);
     return ret >>> 0;
   }
   /**
@@ -8814,7 +9376,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   * @returns {boolean}
   */
   contains(handle) {
-    const ret = rawrigidbodyset_contains(this.ptr, handle);
+    const ret = rawrigidbodyset_contains(this.__wbg_ptr, handle);
     return ret !== 0;
   }
   /**
@@ -8826,7 +9388,7 @@ var RawRigidBodySet = class _RawRigidBodySet {
   */
   forEachRigidBodyHandle(f) {
     try {
-      rawrigidbodyset_forEachRigidBodyHandle(this.ptr, addBorrowedObject(f));
+      rawrigidbodyset_forEachRigidBodyHandle(this.__wbg_ptr, addBorrowedObject(f));
     } finally {
       heap[stack_pointer++] = void 0;
     }
@@ -8836,18 +9398,19 @@ var RawRigidBodySet = class _RawRigidBodySet {
   */
   propagateModifiedBodyPositionsToColliders(colliders) {
     _assertClass(colliders, RawColliderSet);
-    rawrigidbodyset_propagateModifiedBodyPositionsToColliders(this.ptr, colliders.ptr);
+    rawrigidbodyset_propagateModifiedBodyPositionsToColliders(this.__wbg_ptr, colliders.__wbg_ptr);
   }
 };
 var RawRotation = class _RawRotation {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawRotation.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -8877,7 +9440,7 @@ var RawRotation = class _RawRotation {
   * @returns {number}
   */
   get x() {
-    const ret = rawintegrationparameters_dt(this.ptr);
+    const ret = rawintegrationparameters_dt(this.__wbg_ptr);
     return ret;
   }
   /**
@@ -8885,7 +9448,7 @@ var RawRotation = class _RawRotation {
   * @returns {number}
   */
   get y() {
-    const ret = rawrotation_y(this.ptr);
+    const ret = rawkinematiccharactercontroller_offset(this.__wbg_ptr);
     return ret;
   }
   /**
@@ -8893,7 +9456,7 @@ var RawRotation = class _RawRotation {
   * @returns {number}
   */
   get z() {
-    const ret = rawcharactercollision_toi(this.ptr);
+    const ret = rawintegrationparameters_erp(this.__wbg_ptr);
     return ret;
   }
   /**
@@ -8901,19 +9464,20 @@ var RawRotation = class _RawRotation {
   * @returns {number}
   */
   get w() {
-    const ret = rawrotation_w(this.ptr);
+    const ret = rawrotation_w(this.__wbg_ptr);
     return ret;
   }
 };
 var RawSdpMatrix3 = class _RawSdpMatrix3 {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawSdpMatrix3.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -8925,19 +9489,20 @@ var RawSdpMatrix3 = class _RawSdpMatrix3 {
   * @returns {Float32Array}
   */
   elements() {
-    const ret = rawsdpmatrix3_elements(this.ptr);
+    const ret = rawsdpmatrix3_elements(this.__wbg_ptr);
     return takeObject(ret);
   }
 };
 var RawSerializationPipeline = class _RawSerializationPipeline {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawSerializationPipeline.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -8972,7 +9537,7 @@ var RawSerializationPipeline = class _RawSerializationPipeline {
     _assertClass(colliders, RawColliderSet);
     _assertClass(impulse_joints, RawImpulseJointSet);
     _assertClass(multibody_joints, RawMultibodyJointSet);
-    const ret = rawserializationpipeline_serializeAll(this.ptr, gravity.ptr, integrationParameters.ptr, islands.ptr, broadPhase.ptr, narrowPhase.ptr, bodies.ptr, colliders.ptr, impulse_joints.ptr, multibody_joints.ptr);
+    const ret = rawserializationpipeline_serializeAll(this.__wbg_ptr, gravity.__wbg_ptr, integrationParameters.__wbg_ptr, islands.__wbg_ptr, broadPhase.__wbg_ptr, narrowPhase.__wbg_ptr, bodies.__wbg_ptr, colliders.__wbg_ptr, impulse_joints.__wbg_ptr, multibody_joints.__wbg_ptr);
     return takeObject(ret);
   }
   /**
@@ -8980,19 +9545,20 @@ var RawSerializationPipeline = class _RawSerializationPipeline {
   * @returns {RawDeserializedWorld | undefined}
   */
   deserializeAll(data) {
-    const ret = rawserializationpipeline_deserializeAll(this.ptr, addHeapObject(data));
+    const ret = rawserializationpipeline_deserializeAll(this.__wbg_ptr, addHeapObject(data));
     return ret === 0 ? void 0 : RawDeserializedWorld.__wrap(ret);
   }
 };
 var RawShape = class _RawShape {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawShape.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -9034,7 +9600,7 @@ var RawShape = class _RawShape {
   */
   static halfspace(normal) {
     _assertClass(normal, RawVector);
-    const ret = rawshape_halfspace(normal.ptr);
+    const ret = rawshape_halfspace(normal.__wbg_ptr);
     return _RawShape.__wrap(ret);
   }
   /**
@@ -9121,7 +9687,7 @@ var RawShape = class _RawShape {
     const ptr0 = passArrayF32ToWasm0(heights, __wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     _assertClass(scale6, RawVector);
-    const ret = rawshape_heightfield(nrows, ncols, ptr0, len0, scale6.ptr);
+    const ret = rawshape_heightfield(nrows, ncols, ptr0, len0, scale6.__wbg_ptr);
     return _RawShape.__wrap(ret);
   }
   /**
@@ -9132,7 +9698,7 @@ var RawShape = class _RawShape {
   static segment(p1, p2) {
     _assertClass(p1, RawVector);
     _assertClass(p2, RawVector);
-    const ret = rawshape_segment(p1.ptr, p2.ptr);
+    const ret = rawshape_segment(p1.__wbg_ptr, p2.__wbg_ptr);
     return _RawShape.__wrap(ret);
   }
   /**
@@ -9145,7 +9711,7 @@ var RawShape = class _RawShape {
     _assertClass(p1, RawVector);
     _assertClass(p2, RawVector);
     _assertClass(p3, RawVector);
-    const ret = rawshape_triangle(p1.ptr, p2.ptr, p3.ptr);
+    const ret = rawshape_triangle(p1.__wbg_ptr, p2.__wbg_ptr, p3.__wbg_ptr);
     return _RawShape.__wrap(ret);
   }
   /**
@@ -9159,7 +9725,7 @@ var RawShape = class _RawShape {
     _assertClass(p1, RawVector);
     _assertClass(p2, RawVector);
     _assertClass(p3, RawVector);
-    const ret = rawshape_roundTriangle(p1.ptr, p2.ptr, p3.ptr, borderRadius);
+    const ret = rawshape_roundTriangle(p1.__wbg_ptr, p2.__wbg_ptr, p3.__wbg_ptr, borderRadius);
     return _RawShape.__wrap(ret);
   }
   /**
@@ -9230,7 +9796,7 @@ var RawShape = class _RawShape {
     _assertClass(shapePos2, RawVector);
     _assertClass(shapeRot2, RawRotation);
     _assertClass(shapeVel2, RawVector);
-    const ret = rawshape_castShape(this.ptr, shapePos1.ptr, shapeRot1.ptr, shapeVel1.ptr, shape2.ptr, shapePos2.ptr, shapeRot2.ptr, shapeVel2.ptr, maxToi, stop_at_penetration);
+    const ret = rawshape_castShape(this.__wbg_ptr, shapePos1.__wbg_ptr, shapeRot1.__wbg_ptr, shapeVel1.__wbg_ptr, shape2.__wbg_ptr, shapePos2.__wbg_ptr, shapeRot2.__wbg_ptr, shapeVel2.__wbg_ptr, maxToi, stop_at_penetration);
     return ret === 0 ? void 0 : RawShapeTOI.__wrap(ret);
   }
   /**
@@ -9247,7 +9813,7 @@ var RawShape = class _RawShape {
     _assertClass(shape2, _RawShape);
     _assertClass(shapePos2, RawVector);
     _assertClass(shapeRot2, RawRotation);
-    const ret = rawshape_intersectsShape(this.ptr, shapePos1.ptr, shapeRot1.ptr, shape2.ptr, shapePos2.ptr, shapeRot2.ptr);
+    const ret = rawshape_intersectsShape(this.__wbg_ptr, shapePos1.__wbg_ptr, shapeRot1.__wbg_ptr, shape2.__wbg_ptr, shapePos2.__wbg_ptr, shapeRot2.__wbg_ptr);
     return ret !== 0;
   }
   /**
@@ -9265,7 +9831,7 @@ var RawShape = class _RawShape {
     _assertClass(shape2, _RawShape);
     _assertClass(shapePos2, RawVector);
     _assertClass(shapeRot2, RawRotation);
-    const ret = rawshape_contactShape(this.ptr, shapePos1.ptr, shapeRot1.ptr, shape2.ptr, shapePos2.ptr, shapeRot2.ptr, prediction);
+    const ret = rawshape_contactShape(this.__wbg_ptr, shapePos1.__wbg_ptr, shapeRot1.__wbg_ptr, shape2.__wbg_ptr, shapePos2.__wbg_ptr, shapeRot2.__wbg_ptr, prediction);
     return ret === 0 ? void 0 : RawShapeContact.__wrap(ret);
   }
   /**
@@ -9278,7 +9844,7 @@ var RawShape = class _RawShape {
     _assertClass(shapePos, RawVector);
     _assertClass(shapeRot, RawRotation);
     _assertClass(point, RawVector);
-    const ret = rawshape_containsPoint(this.ptr, shapePos.ptr, shapeRot.ptr, point.ptr);
+    const ret = rawshape_containsPoint(this.__wbg_ptr, shapePos.__wbg_ptr, shapeRot.__wbg_ptr, point.__wbg_ptr);
     return ret !== 0;
   }
   /**
@@ -9292,7 +9858,7 @@ var RawShape = class _RawShape {
     _assertClass(shapePos, RawVector);
     _assertClass(shapeRot, RawRotation);
     _assertClass(point, RawVector);
-    const ret = rawshape_projectPoint(this.ptr, shapePos.ptr, shapeRot.ptr, point.ptr, solid);
+    const ret = rawshape_projectPoint(this.__wbg_ptr, shapePos.__wbg_ptr, shapeRot.__wbg_ptr, point.__wbg_ptr, solid);
     return RawPointProjection.__wrap(ret);
   }
   /**
@@ -9308,7 +9874,7 @@ var RawShape = class _RawShape {
     _assertClass(shapeRot, RawRotation);
     _assertClass(rayOrig, RawVector);
     _assertClass(rayDir, RawVector);
-    const ret = rawshape_intersectsRay(this.ptr, shapePos.ptr, shapeRot.ptr, rayOrig.ptr, rayDir.ptr, maxToi);
+    const ret = rawshape_intersectsRay(this.__wbg_ptr, shapePos.__wbg_ptr, shapeRot.__wbg_ptr, rayOrig.__wbg_ptr, rayDir.__wbg_ptr, maxToi);
     return ret !== 0;
   }
   /**
@@ -9325,7 +9891,7 @@ var RawShape = class _RawShape {
     _assertClass(shapeRot, RawRotation);
     _assertClass(rayOrig, RawVector);
     _assertClass(rayDir, RawVector);
-    const ret = rawshape_castRay(this.ptr, shapePos.ptr, shapeRot.ptr, rayOrig.ptr, rayDir.ptr, maxToi, solid);
+    const ret = rawshape_castRay(this.__wbg_ptr, shapePos.__wbg_ptr, shapeRot.__wbg_ptr, rayOrig.__wbg_ptr, rayDir.__wbg_ptr, maxToi, solid);
     return ret;
   }
   /**
@@ -9342,19 +9908,20 @@ var RawShape = class _RawShape {
     _assertClass(shapeRot, RawRotation);
     _assertClass(rayOrig, RawVector);
     _assertClass(rayDir, RawVector);
-    const ret = rawshape_castRayAndGetNormal(this.ptr, shapePos.ptr, shapeRot.ptr, rayOrig.ptr, rayDir.ptr, maxToi, solid);
+    const ret = rawshape_castRayAndGetNormal(this.__wbg_ptr, shapePos.__wbg_ptr, shapeRot.__wbg_ptr, rayOrig.__wbg_ptr, rayDir.__wbg_ptr, maxToi, solid);
     return ret === 0 ? void 0 : RawRayIntersection.__wrap(ret);
   }
 };
 var RawShapeColliderTOI = class _RawShapeColliderTOI {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawShapeColliderTOI.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -9365,54 +9932,55 @@ var RawShapeColliderTOI = class _RawShapeColliderTOI {
   * @returns {number}
   */
   colliderHandle() {
-    const ret = rawcharactercollision_handle(this.ptr);
+    const ret = rawcharactercollision_handle(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {number}
   */
   toi() {
-    const ret = rawcharactercollision_toi(this.ptr);
+    const ret = rawintegrationparameters_erp(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {RawVector}
   */
   witness1() {
-    const ret = rawcharactercollision_worldWitness1(this.ptr);
+    const ret = rawraycolliderintersection_normal(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   witness2() {
-    const ret = rawshapecollidertoi_witness2(this.ptr);
+    const ret = rawshapecollidertoi_witness2(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   normal1() {
-    const ret = rawcharactercollision_worldNormal1(this.ptr);
+    const ret = rawcharactercollision_translationDeltaApplied(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   normal2() {
-    const ret = rawshapecollidertoi_normal2(this.ptr);
+    const ret = rawcharactercollision_translationDeltaRemaining(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
 };
 var RawShapeContact = class _RawShapeContact {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawShapeContact.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -9423,47 +9991,48 @@ var RawShapeContact = class _RawShapeContact {
   * @returns {number}
   */
   distance() {
-    const ret = rawshapecontact_distance(this.ptr);
+    const ret = rawkinematiccharactercontroller_maxSlopeClimbAngle(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {RawVector}
   */
   point1() {
-    const ret = rawkinematiccharactercontroller_computedMovement(this.ptr);
+    const ret = rawpointprojection_point(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   point2() {
-    const ret = rawcharactercollision_worldWitness1(this.ptr);
+    const ret = rawraycolliderintersection_normal(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   normal1() {
-    const ret = rawshapecollidertoi_witness2(this.ptr);
+    const ret = rawshapecollidertoi_witness2(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   normal2() {
-    const ret = rawcharactercollision_worldNormal1(this.ptr);
+    const ret = rawcharactercollision_translationDeltaApplied(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
 };
 var RawShapeTOI = class _RawShapeTOI {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawShapeTOI.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -9474,47 +10043,48 @@ var RawShapeTOI = class _RawShapeTOI {
   * @returns {number}
   */
   toi() {
-    const ret = rawintegrationparameters_dt(this.ptr);
+    const ret = rawintegrationparameters_dt(this.__wbg_ptr);
     return ret;
   }
   /**
   * @returns {RawVector}
   */
   witness1() {
-    const ret = rawshapetoi_witness1(this.ptr);
+    const ret = rawshapetoi_witness1(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   witness2() {
-    const ret = rawcontactforceevent_total_force(this.ptr);
+    const ret = rawcontactforceevent_total_force(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   normal1() {
-    const ret = rawshapetoi_normal1(this.ptr);
+    const ret = rawshapetoi_normal1(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
   /**
   * @returns {RawVector}
   */
   normal2() {
-    const ret = rawshapetoi_normal2(this.ptr);
+    const ret = rawshapetoi_normal2(this.__wbg_ptr);
     return RawVector.__wrap(ret);
   }
 };
 var RawVector = class _RawVector {
   static __wrap(ptr) {
+    ptr = ptr >>> 0;
     const obj = Object.create(_RawVector.prototype);
-    obj.ptr = ptr;
+    obj.__wbg_ptr = ptr;
     return obj;
   }
   __destroy_into_raw() {
-    const ptr = this.ptr;
-    this.ptr = 0;
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
     return ptr;
   }
   free() {
@@ -9549,7 +10119,7 @@ var RawVector = class _RawVector {
   * @returns {number}
   */
   get x() {
-    const ret = rawintegrationparameters_dt(this.ptr);
+    const ret = rawintegrationparameters_dt(this.__wbg_ptr);
     return ret;
   }
   /**
@@ -9557,14 +10127,14 @@ var RawVector = class _RawVector {
   * @param {number} x
   */
   set x(x) {
-    rawintegrationparameters_set_dt(this.ptr, x);
+    rawintegrationparameters_set_dt(this.__wbg_ptr, x);
   }
   /**
   * The `y` component of this vector.
   * @returns {number}
   */
   get y() {
-    const ret = rawrotation_y(this.ptr);
+    const ret = rawkinematiccharactercontroller_offset(this.__wbg_ptr);
     return ret;
   }
   /**
@@ -9572,14 +10142,14 @@ var RawVector = class _RawVector {
   * @param {number} y
   */
   set y(y) {
-    rawvector_set_y(this.ptr, y);
+    rawvector_set_y(this.__wbg_ptr, y);
   }
   /**
   * The `z` component of this vector.
   * @returns {number}
   */
   get z() {
-    const ret = rawcharactercollision_toi(this.ptr);
+    const ret = rawintegrationparameters_erp(this.__wbg_ptr);
     return ret;
   }
   /**
@@ -9587,7 +10157,7 @@ var RawVector = class _RawVector {
   * @param {number} z
   */
   set z(z) {
-    rawintegrationparameters_set_erp(this.ptr, z);
+    rawintegrationparameters_set_erp(this.__wbg_ptr, z);
   }
   /**
   * Create a new 3D vector from this vector with its components rearranged as `{x, y, z}`.
@@ -9597,7 +10167,7 @@ var RawVector = class _RawVector {
   * @returns {RawVector}
   */
   xyz() {
-    const ret = rawvector_xyz(this.ptr);
+    const ret = rawvector_xyz(this.__wbg_ptr);
     return _RawVector.__wrap(ret);
   }
   /**
@@ -9605,7 +10175,7 @@ var RawVector = class _RawVector {
   * @returns {RawVector}
   */
   yxz() {
-    const ret = rawvector_yxz(this.ptr);
+    const ret = rawvector_yxz(this.__wbg_ptr);
     return _RawVector.__wrap(ret);
   }
   /**
@@ -9613,7 +10183,7 @@ var RawVector = class _RawVector {
   * @returns {RawVector}
   */
   zxy() {
-    const ret = rawvector_zxy(this.ptr);
+    const ret = rawvector_zxy(this.__wbg_ptr);
     return _RawVector.__wrap(ret);
   }
   /**
@@ -9621,7 +10191,7 @@ var RawVector = class _RawVector {
   * @returns {RawVector}
   */
   xzy() {
-    const ret = rawvector_xzy(this.ptr);
+    const ret = rawvector_xzy(this.__wbg_ptr);
     return _RawVector.__wrap(ret);
   }
   /**
@@ -9629,7 +10199,7 @@ var RawVector = class _RawVector {
   * @returns {RawVector}
   */
   yzx() {
-    const ret = rawvector_yzx(this.ptr);
+    const ret = rawvector_yzx(this.__wbg_ptr);
     return _RawVector.__wrap(ret);
   }
   /**
@@ -9637,27 +10207,27 @@ var RawVector = class _RawVector {
   * @returns {RawVector}
   */
   zyx() {
-    const ret = rawvector_zyx(this.ptr);
+    const ret = rawvector_zyx(this.__wbg_ptr);
     return _RawVector.__wrap(ret);
   }
 };
-function __wbindgen_object_drop_ref(arg0) {
-  takeObject(arg0);
-}
 function __wbindgen_number_new(arg0) {
   const ret = arg0;
   return addHeapObject(ret);
+}
+function __wbindgen_boolean_get(arg0) {
+  const v = getObject(arg0);
+  const ret = typeof v === "boolean" ? v ? 1 : 0 : 2;
+  return ret;
+}
+function __wbindgen_object_drop_ref(arg0) {
+  takeObject(arg0);
 }
 function __wbindgen_number_get(arg0, arg1) {
   const obj = getObject(arg1);
   const ret = typeof obj === "number" ? obj : void 0;
   getFloat64Memory0()[arg0 / 8 + 1] = isLikeNone(ret) ? 0 : ret;
   getInt32Memory0()[arg0 / 4 + 0] = !isLikeNone(ret);
-}
-function __wbindgen_boolean_get(arg0) {
-  const v = getObject(arg0);
-  const ret = typeof v === "boolean" ? v ? 1 : 0 : 2;
-  return ret;
 }
 function __wbindgen_is_function(arg0) {
   const ret = typeof getObject(arg0) === "function";
@@ -9671,59 +10241,59 @@ function __wbg_rawcontactforceevent_new(arg0) {
   const ret = RawContactForceEvent.__wrap(arg0);
   return addHeapObject(ret);
 }
-function __wbg_call_168da88779e35f61() {
+function __wbg_call_01734de55d61e11d() {
   return handleError(function(arg0, arg1, arg2) {
     const ret = getObject(arg0).call(getObject(arg1), getObject(arg2));
     return addHeapObject(ret);
   }, arguments);
 }
-function __wbg_call_3999bee59e9f7719() {
+function __wbg_call_4c92f6aec1e1d6e6() {
   return handleError(function(arg0, arg1, arg2, arg3) {
     const ret = getObject(arg0).call(getObject(arg1), getObject(arg2), getObject(arg3));
     return addHeapObject(ret);
   }, arguments);
 }
-function __wbg_call_e1f72c051cdab859() {
+function __wbg_call_776890ca77946e2f() {
   return handleError(function(arg0, arg1, arg2, arg3, arg4) {
     const ret = getObject(arg0).call(getObject(arg1), getObject(arg2), getObject(arg3), getObject(arg4));
     return addHeapObject(ret);
   }, arguments);
 }
-function __wbg_bind_10dfe70e95d2a480(arg0, arg1, arg2, arg3) {
+function __wbg_bind_60a9a80cada2f33c(arg0, arg1, arg2, arg3) {
   const ret = getObject(arg0).bind(getObject(arg1), getObject(arg2), getObject(arg3));
   return addHeapObject(ret);
 }
-function __wbg_buffer_3f3d764d4747d564(arg0) {
+function __wbg_buffer_085ec1f694018c4f(arg0) {
   const ret = getObject(arg0).buffer;
   return addHeapObject(ret);
 }
-function __wbg_newwithbyteoffsetandlength_d9aa266703cb98be(arg0, arg1, arg2) {
+function __wbg_newwithbyteoffsetandlength_6da8e527659b86aa(arg0, arg1, arg2) {
   const ret = new Uint8Array(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
   return addHeapObject(ret);
 }
-function __wbg_new_8c3f0052272a457a(arg0) {
+function __wbg_new_8125e318e6245eed(arg0) {
   const ret = new Uint8Array(getObject(arg0));
   return addHeapObject(ret);
 }
-function __wbg_set_83db9690f9353e79(arg0, arg1, arg2) {
+function __wbg_set_5cf90238115182c3(arg0, arg1, arg2) {
   getObject(arg0).set(getObject(arg1), arg2 >>> 0);
 }
-function __wbg_length_9e1ae1900cb0fbd5(arg0) {
+function __wbg_length_72e2208bbc0efc61(arg0) {
   const ret = getObject(arg0).length;
   return ret;
 }
-function __wbg_newwithbyteoffsetandlength_be22e5fcf4f69ab4(arg0, arg1, arg2) {
+function __wbg_newwithbyteoffsetandlength_69193e31c844b792(arg0, arg1, arg2) {
   const ret = new Float32Array(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
   return addHeapObject(ret);
 }
-function __wbg_set_0e0314cf6675c1b9(arg0, arg1, arg2) {
+function __wbg_set_6146c51d49a2c0df(arg0, arg1, arg2) {
   getObject(arg0).set(getObject(arg1), arg2 >>> 0);
 }
-function __wbg_length_9a2deed95d22668d(arg0) {
+function __wbg_length_d7327c75a759af37(arg0) {
   const ret = getObject(arg0).length;
   return ret;
 }
-function __wbg_newwithlength_a7168e4a1e8f5e12(arg0) {
+function __wbg_newwithlength_68d29ab115d0099c(arg0) {
   const ret = new Float32Array(arg0 >>> 0);
   return addHeapObject(ret);
 }
@@ -9735,29 +10305,29 @@ function __wbindgen_memory() {
   return addHeapObject(ret);
 }
 
-// wasm-module:/home/albatross/src/ballphys/node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/rapier_wasm3d_bg.wasm
+// wasm-module:/home/albatross/src/rapier.js/rapier3d/pkg/rapier_wasm3d_bg.wasm
 var imports = {
   ["./rapier_wasm3d_bg.js"]: {
-    __wbindgen_object_drop_ref,
     __wbindgen_number_new,
-    __wbindgen_number_get,
     __wbindgen_boolean_get,
+    __wbindgen_object_drop_ref,
+    __wbindgen_number_get,
     __wbindgen_is_function,
     __wbg_rawraycolliderintersection_new,
     __wbg_rawcontactforceevent_new,
-    __wbg_call_168da88779e35f61,
-    __wbg_call_3999bee59e9f7719,
-    __wbg_call_e1f72c051cdab859,
-    __wbg_bind_10dfe70e95d2a480,
-    __wbg_buffer_3f3d764d4747d564,
-    __wbg_newwithbyteoffsetandlength_d9aa266703cb98be,
-    __wbg_new_8c3f0052272a457a,
-    __wbg_set_83db9690f9353e79,
-    __wbg_length_9e1ae1900cb0fbd5,
-    __wbg_newwithbyteoffsetandlength_be22e5fcf4f69ab4,
-    __wbg_set_0e0314cf6675c1b9,
-    __wbg_length_9a2deed95d22668d,
-    __wbg_newwithlength_a7168e4a1e8f5e12,
+    __wbg_call_01734de55d61e11d,
+    __wbg_call_4c92f6aec1e1d6e6,
+    __wbg_call_776890ca77946e2f,
+    __wbg_bind_60a9a80cada2f33c,
+    __wbg_buffer_085ec1f694018c4f,
+    __wbg_newwithbyteoffsetandlength_6da8e527659b86aa,
+    __wbg_new_8125e318e6245eed,
+    __wbg_set_5cf90238115182c3,
+    __wbg_length_72e2208bbc0efc61,
+    __wbg_newwithbyteoffsetandlength_69193e31c844b792,
+    __wbg_set_6146c51d49a2c0df,
+    __wbg_length_d7327c75a759af37,
+    __wbg_newwithlength_68d29ab115d0099c,
     __wbindgen_throw,
     __wbindgen_memory
   }
@@ -9788,7 +10358,6 @@ var memory = instance.exports.memory;
 var version = instance.exports.version;
 var __wbg_rawkinematiccharactercontroller_free = instance.exports.__wbg_rawkinematiccharactercontroller_free;
 var rawkinematiccharactercontroller_new = instance.exports.rawkinematiccharactercontroller_new;
-var rawkinematiccharactercontroller_up = instance.exports.rawkinematiccharactercontroller_up;
 var rawkinematiccharactercontroller_setUp = instance.exports.rawkinematiccharactercontroller_setUp;
 var rawkinematiccharactercontroller_offset = instance.exports.rawkinematiccharactercontroller_offset;
 var rawkinematiccharactercontroller_setOffset = instance.exports.rawkinematiccharactercontroller_setOffset;
@@ -9816,13 +10385,62 @@ var rawkinematiccharactercontroller_computedCollision = instance.exports.rawkine
 var __wbg_rawcharactercollision_free = instance.exports.__wbg_rawcharactercollision_free;
 var rawcharactercollision_new = instance.exports.rawcharactercollision_new;
 var rawcharactercollision_handle = instance.exports.rawcharactercollision_handle;
-var rawcharactercollision_translationApplied = instance.exports.rawcharactercollision_translationApplied;
-var rawcharactercollision_translationRemaining = instance.exports.rawcharactercollision_translationRemaining;
+var rawcharactercollision_translationDeltaApplied = instance.exports.rawcharactercollision_translationDeltaApplied;
+var rawcharactercollision_translationDeltaRemaining = instance.exports.rawcharactercollision_translationDeltaRemaining;
 var rawcharactercollision_toi = instance.exports.rawcharactercollision_toi;
 var rawcharactercollision_worldWitness1 = instance.exports.rawcharactercollision_worldWitness1;
 var rawcharactercollision_worldWitness2 = instance.exports.rawcharactercollision_worldWitness2;
 var rawcharactercollision_worldNormal1 = instance.exports.rawcharactercollision_worldNormal1;
 var rawcharactercollision_worldNormal2 = instance.exports.rawcharactercollision_worldNormal2;
+var __wbg_rawdynamicraycastvehiclecontroller_free = instance.exports.__wbg_rawdynamicraycastvehiclecontroller_free;
+var rawdynamicraycastvehiclecontroller_new = instance.exports.rawdynamicraycastvehiclecontroller_new;
+var rawdynamicraycastvehiclecontroller_current_vehicle_speed = instance.exports.rawdynamicraycastvehiclecontroller_current_vehicle_speed;
+var rawdynamicraycastvehiclecontroller_chassis = instance.exports.rawdynamicraycastvehiclecontroller_chassis;
+var rawdynamicraycastvehiclecontroller_index_up_axis = instance.exports.rawdynamicraycastvehiclecontroller_index_up_axis;
+var rawdynamicraycastvehiclecontroller_set_index_up_axis = instance.exports.rawdynamicraycastvehiclecontroller_set_index_up_axis;
+var rawdynamicraycastvehiclecontroller_index_forward_axis = instance.exports.rawdynamicraycastvehiclecontroller_index_forward_axis;
+var rawdynamicraycastvehiclecontroller_set_index_forward_axis = instance.exports.rawdynamicraycastvehiclecontroller_set_index_forward_axis;
+var rawdynamicraycastvehiclecontroller_add_wheel = instance.exports.rawdynamicraycastvehiclecontroller_add_wheel;
+var rawdynamicraycastvehiclecontroller_num_wheels = instance.exports.rawdynamicraycastvehiclecontroller_num_wheels;
+var rawdynamicraycastvehiclecontroller_update_vehicle = instance.exports.rawdynamicraycastvehiclecontroller_update_vehicle;
+var rawdynamicraycastvehiclecontroller_wheel_chassis_connection_point_cs = instance.exports.rawdynamicraycastvehiclecontroller_wheel_chassis_connection_point_cs;
+var rawdynamicraycastvehiclecontroller_set_wheel_chassis_connection_point_cs = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_chassis_connection_point_cs;
+var rawdynamicraycastvehiclecontroller_wheel_suspension_rest_length = instance.exports.rawdynamicraycastvehiclecontroller_wheel_suspension_rest_length;
+var rawdynamicraycastvehiclecontroller_set_wheel_suspension_rest_length = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_suspension_rest_length;
+var rawdynamicraycastvehiclecontroller_wheel_max_suspension_travel = instance.exports.rawdynamicraycastvehiclecontroller_wheel_max_suspension_travel;
+var rawdynamicraycastvehiclecontroller_set_wheel_max_suspension_travel = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_max_suspension_travel;
+var rawdynamicraycastvehiclecontroller_wheel_radius = instance.exports.rawdynamicraycastvehiclecontroller_wheel_radius;
+var rawdynamicraycastvehiclecontroller_set_wheel_radius = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_radius;
+var rawdynamicraycastvehiclecontroller_wheel_suspension_stiffness = instance.exports.rawdynamicraycastvehiclecontroller_wheel_suspension_stiffness;
+var rawdynamicraycastvehiclecontroller_set_wheel_suspension_stiffness = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_suspension_stiffness;
+var rawdynamicraycastvehiclecontroller_wheel_suspension_compression = instance.exports.rawdynamicraycastvehiclecontroller_wheel_suspension_compression;
+var rawdynamicraycastvehiclecontroller_set_wheel_suspension_compression = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_suspension_compression;
+var rawdynamicraycastvehiclecontroller_wheel_suspension_relaxation = instance.exports.rawdynamicraycastvehiclecontroller_wheel_suspension_relaxation;
+var rawdynamicraycastvehiclecontroller_set_wheel_suspension_relaxation = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_suspension_relaxation;
+var rawdynamicraycastvehiclecontroller_wheel_max_suspension_force = instance.exports.rawdynamicraycastvehiclecontroller_wheel_max_suspension_force;
+var rawdynamicraycastvehiclecontroller_set_wheel_max_suspension_force = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_max_suspension_force;
+var rawdynamicraycastvehiclecontroller_wheel_brake = instance.exports.rawdynamicraycastvehiclecontroller_wheel_brake;
+var rawdynamicraycastvehiclecontroller_set_wheel_brake = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_brake;
+var rawdynamicraycastvehiclecontroller_wheel_steering = instance.exports.rawdynamicraycastvehiclecontroller_wheel_steering;
+var rawdynamicraycastvehiclecontroller_set_wheel_steering = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_steering;
+var rawdynamicraycastvehiclecontroller_wheel_engine_force = instance.exports.rawdynamicraycastvehiclecontroller_wheel_engine_force;
+var rawdynamicraycastvehiclecontroller_set_wheel_engine_force = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_engine_force;
+var rawdynamicraycastvehiclecontroller_wheel_direction_cs = instance.exports.rawdynamicraycastvehiclecontroller_wheel_direction_cs;
+var rawdynamicraycastvehiclecontroller_set_wheel_direction_cs = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_direction_cs;
+var rawdynamicraycastvehiclecontroller_wheel_axle_cs = instance.exports.rawdynamicraycastvehiclecontroller_wheel_axle_cs;
+var rawdynamicraycastvehiclecontroller_set_wheel_axle_cs = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_axle_cs;
+var rawdynamicraycastvehiclecontroller_wheel_friction_slip = instance.exports.rawdynamicraycastvehiclecontroller_wheel_friction_slip;
+var rawdynamicraycastvehiclecontroller_set_wheel_friction_slip = instance.exports.rawdynamicraycastvehiclecontroller_set_wheel_friction_slip;
+var rawdynamicraycastvehiclecontroller_wheel_rotation = instance.exports.rawdynamicraycastvehiclecontroller_wheel_rotation;
+var rawdynamicraycastvehiclecontroller_wheel_forward_impulse = instance.exports.rawdynamicraycastvehiclecontroller_wheel_forward_impulse;
+var rawdynamicraycastvehiclecontroller_wheel_side_impulse = instance.exports.rawdynamicraycastvehiclecontroller_wheel_side_impulse;
+var rawdynamicraycastvehiclecontroller_wheel_suspension_force = instance.exports.rawdynamicraycastvehiclecontroller_wheel_suspension_force;
+var rawdynamicraycastvehiclecontroller_wheel_contact_normal_ws = instance.exports.rawdynamicraycastvehiclecontroller_wheel_contact_normal_ws;
+var rawdynamicraycastvehiclecontroller_wheel_contact_point_ws = instance.exports.rawdynamicraycastvehiclecontroller_wheel_contact_point_ws;
+var rawdynamicraycastvehiclecontroller_wheel_suspension_length = instance.exports.rawdynamicraycastvehiclecontroller_wheel_suspension_length;
+var rawdynamicraycastvehiclecontroller_wheel_hard_point_ws = instance.exports.rawdynamicraycastvehiclecontroller_wheel_hard_point_ws;
+var rawdynamicraycastvehiclecontroller_wheel_is_in_contact = instance.exports.rawdynamicraycastvehiclecontroller_wheel_is_in_contact;
+var rawdynamicraycastvehiclecontroller_wheel_ground_object = instance.exports.rawdynamicraycastvehiclecontroller_wheel_ground_object;
 var __wbg_rawccdsolver_free = instance.exports.__wbg_rawccdsolver_free;
 var rawccdsolver_new = instance.exports.rawccdsolver_new;
 var rawimpulsejointset_jointType = instance.exports.rawimpulsejointset_jointType;
@@ -9855,13 +10473,12 @@ var rawimpulsejointset_forEachJointAttachedToRigidBody = instance.exports.rawimp
 var __wbg_rawintegrationparameters_free = instance.exports.__wbg_rawintegrationparameters_free;
 var rawintegrationparameters_new = instance.exports.rawintegrationparameters_new;
 var rawintegrationparameters_dt = instance.exports.rawintegrationparameters_dt;
+var rawintegrationparameters_erp = instance.exports.rawintegrationparameters_erp;
 var rawintegrationparameters_allowedLinearError = instance.exports.rawintegrationparameters_allowedLinearError;
 var rawintegrationparameters_predictionDistance = instance.exports.rawintegrationparameters_predictionDistance;
 var rawintegrationparameters_maxVelocityIterations = instance.exports.rawintegrationparameters_maxVelocityIterations;
 var rawintegrationparameters_maxVelocityFrictionIterations = instance.exports.rawintegrationparameters_maxVelocityFrictionIterations;
 var rawintegrationparameters_maxStabilizationIterations = instance.exports.rawintegrationparameters_maxStabilizationIterations;
-var rawintegrationparameters_minIslandSize = instance.exports.rawintegrationparameters_minIslandSize;
-var rawintegrationparameters_maxCcdSubsteps = instance.exports.rawintegrationparameters_maxCcdSubsteps;
 var rawintegrationparameters_set_dt = instance.exports.rawintegrationparameters_set_dt;
 var rawintegrationparameters_set_erp = instance.exports.rawintegrationparameters_set_erp;
 var rawintegrationparameters_set_allowedLinearError = instance.exports.rawintegrationparameters_set_allowedLinearError;
@@ -9869,12 +10486,11 @@ var rawintegrationparameters_set_predictionDistance = instance.exports.rawintegr
 var rawintegrationparameters_set_maxVelocityIterations = instance.exports.rawintegrationparameters_set_maxVelocityIterations;
 var rawintegrationparameters_set_maxVelocityFrictionIterations = instance.exports.rawintegrationparameters_set_maxVelocityFrictionIterations;
 var rawintegrationparameters_set_maxStabilizationIterations = instance.exports.rawintegrationparameters_set_maxStabilizationIterations;
-var rawintegrationparameters_set_minIslandSize = instance.exports.rawintegrationparameters_set_minIslandSize;
-var rawintegrationparameters_set_maxCcdSubsteps = instance.exports.rawintegrationparameters_set_maxCcdSubsteps;
 var __wbg_rawislandmanager_free = instance.exports.__wbg_rawislandmanager_free;
 var rawislandmanager_new = instance.exports.rawislandmanager_new;
 var rawislandmanager_forEachActiveRigidBodyHandle = instance.exports.rawislandmanager_forEachActiveRigidBodyHandle;
 var __wbg_rawgenericjoint_free = instance.exports.__wbg_rawgenericjoint_free;
+var rawgenericjoint_generic = instance.exports.rawgenericjoint_generic;
 var rawgenericjoint_spherical = instance.exports.rawgenericjoint_spherical;
 var rawgenericjoint_prismatic = instance.exports.rawgenericjoint_prismatic;
 var rawgenericjoint_fixed = instance.exports.rawgenericjoint_fixed;
@@ -9962,7 +10578,6 @@ var __wbg_rawrigidbodyset_free = instance.exports.__wbg_rawrigidbodyset_free;
 var rawrigidbodyset_new = instance.exports.rawrigidbodyset_new;
 var rawrigidbodyset_createRigidBody = instance.exports.rawrigidbodyset_createRigidBody;
 var rawrigidbodyset_remove = instance.exports.rawrigidbodyset_remove;
-var rawrigidbodyset_len = instance.exports.rawrigidbodyset_len;
 var rawrigidbodyset_contains = instance.exports.rawrigidbodyset_contains;
 var rawrigidbodyset_forEachRigidBodyHandle = instance.exports.rawrigidbodyset_forEachRigidBodyHandle;
 var rawrigidbodyset_propagateModifiedBodyPositionsToColliders = instance.exports.rawrigidbodyset_propagateModifiedBodyPositionsToColliders;
@@ -10040,7 +10655,6 @@ var rawcolliderset_createCollider = instance.exports.rawcolliderset_createCollid
 var rawcolliderset_remove = instance.exports.rawcolliderset_remove;
 var rawcolliderset_forEachColliderHandle = instance.exports.rawcolliderset_forEachColliderHandle;
 var __wbg_rawshapecontact_free = instance.exports.__wbg_rawshapecontact_free;
-var rawshapecontact_distance = instance.exports.rawshapecontact_distance;
 var __wbg_rawnarrowphase_free = instance.exports.__wbg_rawnarrowphase_free;
 var rawnarrowphase_new = instance.exports.rawnarrowphase_new;
 var rawnarrowphase_contacts_with = instance.exports.rawnarrowphase_contacts_with;
@@ -10073,17 +10687,16 @@ var rawcontactmanifold_solver_contact_friction = instance.exports.rawcontactmani
 var rawcontactmanifold_solver_contact_restitution = instance.exports.rawcontactmanifold_solver_contact_restitution;
 var rawcontactmanifold_solver_contact_tangent_velocity = instance.exports.rawcontactmanifold_solver_contact_tangent_velocity;
 var __wbg_rawpointprojection_free = instance.exports.__wbg_rawpointprojection_free;
+var rawpointprojection_point = instance.exports.rawpointprojection_point;
+var rawpointprojection_isInside = instance.exports.rawpointprojection_isInside;
 var __wbg_rawpointcolliderprojection_free = instance.exports.__wbg_rawpointcolliderprojection_free;
 var rawpointcolliderprojection_colliderHandle = instance.exports.rawpointcolliderprojection_colliderHandle;
+var rawpointcolliderprojection_point = instance.exports.rawpointcolliderprojection_point;
+var rawpointcolliderprojection_isInside = instance.exports.rawpointcolliderprojection_isInside;
 var rawpointcolliderprojection_featureType = instance.exports.rawpointcolliderprojection_featureType;
 var rawpointcolliderprojection_featureId = instance.exports.rawpointcolliderprojection_featureId;
 var __wbg_rawrayintersection_free = instance.exports.__wbg_rawrayintersection_free;
-var rawrayintersection_featureType = instance.exports.rawrayintersection_featureType;
-var rawrayintersection_featureId = instance.exports.rawrayintersection_featureId;
 var rawraycolliderintersection_normal = instance.exports.rawraycolliderintersection_normal;
-var rawraycolliderintersection_toi = instance.exports.rawraycolliderintersection_toi;
-var rawraycolliderintersection_featureType = instance.exports.rawraycolliderintersection_featureType;
-var rawraycolliderintersection_featureId = instance.exports.rawraycolliderintersection_featureId;
 var __wbg_rawraycollidertoi_free = instance.exports.__wbg_rawraycollidertoi_free;
 var __wbg_rawshape_free = instance.exports.__wbg_rawshape_free;
 var rawshape_cuboid = instance.exports.rawshape_cuboid;
@@ -10119,10 +10732,8 @@ var rawshapetoi_normal1 = instance.exports.rawshapetoi_normal1;
 var rawshapetoi_normal2 = instance.exports.rawshapetoi_normal2;
 var __wbg_rawshapecollidertoi_free = instance.exports.__wbg_rawshapecollidertoi_free;
 var rawshapecollidertoi_witness2 = instance.exports.rawshapecollidertoi_witness2;
-var rawshapecollidertoi_normal2 = instance.exports.rawshapecollidertoi_normal2;
 var rawrotation_new = instance.exports.rawrotation_new;
 var rawrotation_identity = instance.exports.rawrotation_identity;
-var rawrotation_y = instance.exports.rawrotation_y;
 var rawrotation_w = instance.exports.rawrotation_w;
 var rawvector_zero = instance.exports.rawvector_zero;
 var rawvector_new = instance.exports.rawvector_new;
@@ -10179,48 +10790,57 @@ var rawdeserializedworld_takeImpulseJoints = instance.exports.rawdeserializedwor
 var rawdeserializedworld_takeMultibodyJoints = instance.exports.rawdeserializedworld_takeMultibodyJoints;
 var rawserializationpipeline_serializeAll = instance.exports.rawserializationpipeline_serializeAll;
 var rawserializationpipeline_deserializeAll = instance.exports.rawserializationpipeline_deserializeAll;
+var rawintegrationparameters_set_minIslandSize = instance.exports.rawintegrationparameters_set_minIslandSize;
+var rawintegrationparameters_set_maxCcdSubsteps = instance.exports.rawintegrationparameters_set_maxCcdSubsteps;
+var rawvector_set_x = instance.exports.rawvector_set_x;
+var rawvector_set_z = instance.exports.rawvector_set_z;
+var rawintegrationparameters_minIslandSize = instance.exports.rawintegrationparameters_minIslandSize;
+var rawintegrationparameters_maxCcdSubsteps = instance.exports.rawintegrationparameters_maxCcdSubsteps;
+var rawrigidbodyset_len = instance.exports.rawrigidbodyset_len;
+var rawshapecontact_distance = instance.exports.rawshapecontact_distance;
+var rawrayintersection_toi = instance.exports.rawrayintersection_toi;
+var rawrayintersection_featureType = instance.exports.rawrayintersection_featureType;
+var rawraycolliderintersection_colliderHandle = instance.exports.rawraycolliderintersection_colliderHandle;
+var rawraycolliderintersection_toi = instance.exports.rawraycolliderintersection_toi;
+var rawraycolliderintersection_featureType = instance.exports.rawraycolliderintersection_featureType;
+var rawraycollidertoi_colliderHandle = instance.exports.rawraycollidertoi_colliderHandle;
+var rawraycollidertoi_toi = instance.exports.rawraycollidertoi_toi;
+var rawshapetoi_toi = instance.exports.rawshapetoi_toi;
+var rawshapecollidertoi_colliderHandle = instance.exports.rawshapecollidertoi_colliderHandle;
+var rawshapecollidertoi_toi = instance.exports.rawshapecollidertoi_toi;
+var rawrotation_x = instance.exports.rawrotation_x;
+var rawrotation_y = instance.exports.rawrotation_y;
+var rawrotation_z = instance.exports.rawrotation_z;
+var rawvector_x = instance.exports.rawvector_x;
+var rawvector_y = instance.exports.rawvector_y;
+var rawvector_z = instance.exports.rawvector_z;
+var rawcontactforceevent_collider1 = instance.exports.rawcontactforceevent_collider1;
+var rawkinematiccharactercontroller_up = instance.exports.rawkinematiccharactercontroller_up;
+var rawshapecontact_normal2 = instance.exports.rawshapecontact_normal2;
+var rawshapecontact_point1 = instance.exports.rawshapecontact_point1;
+var rawshapecontact_point2 = instance.exports.rawshapecontact_point2;
+var rawrayintersection_normal = instance.exports.rawrayintersection_normal;
+var rawshapecollidertoi_witness1 = instance.exports.rawshapecollidertoi_witness1;
+var rawshapecontact_normal1 = instance.exports.rawshapecontact_normal1;
+var rawshapecollidertoi_normal1 = instance.exports.rawshapecollidertoi_normal1;
+var rawshapecollidertoi_normal2 = instance.exports.rawshapecollidertoi_normal2;
+var rawshapetoi_witness2 = instance.exports.rawshapetoi_witness2;
+var rawserializationpipeline_new = instance.exports.rawserializationpipeline_new;
+var rawrayintersection_featureId = instance.exports.rawrayintersection_featureId;
+var rawraycolliderintersection_featureId = instance.exports.rawraycolliderintersection_featureId;
+var __wbg_rawserializationpipeline_free = instance.exports.__wbg_rawserializationpipeline_free;
 var __wbg_rawcontactpair_free = instance.exports.__wbg_rawcontactpair_free;
 var __wbg_rawraycolliderintersection_free = instance.exports.__wbg_rawraycolliderintersection_free;
 var __wbg_rawrotation_free = instance.exports.__wbg_rawrotation_free;
 var __wbg_rawvector_free = instance.exports.__wbg_rawvector_free;
 var __wbg_rawsdpmatrix3_free = instance.exports.__wbg_rawsdpmatrix3_free;
-var rawvector_set_x = instance.exports.rawvector_set_x;
-var rawvector_set_z = instance.exports.rawvector_set_z;
-var rawpointprojection_isInside = instance.exports.rawpointprojection_isInside;
-var rawpointcolliderprojection_isInside = instance.exports.rawpointcolliderprojection_isInside;
 var rawcolliderset_isHandleValid = instance.exports.rawcolliderset_isHandleValid;
-var rawshapecontact_point1 = instance.exports.rawshapecontact_point1;
-var rawshapecontact_point2 = instance.exports.rawshapecontact_point2;
-var rawshapecontact_normal2 = instance.exports.rawshapecontact_normal2;
-var rawpointprojection_point = instance.exports.rawpointprojection_point;
-var rawpointcolliderprojection_point = instance.exports.rawpointcolliderprojection_point;
-var rawrayintersection_normal = instance.exports.rawrayintersection_normal;
-var rawshapecollidertoi_witness1 = instance.exports.rawshapecollidertoi_witness1;
-var rawshapecontact_normal1 = instance.exports.rawshapecontact_normal1;
-var rawshapecollidertoi_normal1 = instance.exports.rawshapecollidertoi_normal1;
-var rawshapetoi_witness2 = instance.exports.rawshapetoi_witness2;
-var rawserializationpipeline_new = instance.exports.rawserializationpipeline_new;
-var rawintegrationparameters_erp = instance.exports.rawintegrationparameters_erp;
-var rawrayintersection_toi = instance.exports.rawrayintersection_toi;
-var rawraycollidertoi_toi = instance.exports.rawraycollidertoi_toi;
-var rawshapetoi_toi = instance.exports.rawshapetoi_toi;
-var rawshapecollidertoi_toi = instance.exports.rawshapecollidertoi_toi;
-var rawrotation_x = instance.exports.rawrotation_x;
-var rawrotation_z = instance.exports.rawrotation_z;
-var rawvector_x = instance.exports.rawvector_x;
-var rawvector_y = instance.exports.rawvector_y;
-var rawvector_z = instance.exports.rawvector_z;
-var rawraycolliderintersection_colliderHandle = instance.exports.rawraycolliderintersection_colliderHandle;
-var rawraycollidertoi_colliderHandle = instance.exports.rawraycollidertoi_colliderHandle;
-var rawshapecollidertoi_colliderHandle = instance.exports.rawshapecollidertoi_colliderHandle;
-var rawcontactforceevent_collider1 = instance.exports.rawcontactforceevent_collider1;
-var __wbg_rawserializationpipeline_free = instance.exports.__wbg_rawserializationpipeline_free;
 var __wbindgen_add_to_stack_pointer = instance.exports.__wbindgen_add_to_stack_pointer;
 var __wbindgen_free = instance.exports.__wbindgen_free;
 var __wbindgen_malloc = instance.exports.__wbindgen_malloc;
 var __wbindgen_exn_store = instance.exports.__wbindgen_exn_store;
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/math.js
+// ../rapier.js/rapier3d/pkg/math.js
 var Vector3 = class {
   constructor(x, y, z) {
     this.x = x;
@@ -10348,7 +10968,7 @@ var SdpMatrix3Ops = class {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/dynamics/rigid_body.js
+// ../rapier.js/rapier3d/pkg/dynamics/rigid_body.js
 var RigidBodyType;
 (function(RigidBodyType2) {
   RigidBodyType2[RigidBodyType2["Dynamic"] = 0] = "Dynamic";
@@ -10508,7 +11128,7 @@ var RigidBody = class {
     this.rawSet.rbSetTranslation(this.handle, tra.x, tra.y, tra.z, wakeUp);
   }
   /**
-   * Sets the linear velocity fo this rigid-body.
+   * Sets the linear velocity of this rigid-body.
    *
    * @param vel - The linear velocity to set.
    * @param wakeUp - Forces the rigid-body to wake-up if it was asleep.
@@ -11265,7 +11885,7 @@ var RigidBodyDesc = class _RigidBodyDesc {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/coarena.js
+// ../rapier.js/rapier3d/pkg/coarena.js
 var Coarena = class {
   constructor() {
     this.fconv = new Float64Array(1);
@@ -11319,7 +11939,7 @@ var Coarena = class {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/dynamics/rigid_body_set.js
+// ../rapier.js/rapier3d/pkg/dynamics/rigid_body_set.js
 var RigidBodySet = class {
   constructor(raw) {
     this.raw = raw || new RawRigidBodySet();
@@ -11473,7 +12093,7 @@ var RigidBodySet = class {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/dynamics/integration_parameters.js
+// ../rapier.js/rapier3d/pkg/dynamics/integration_parameters.js
 var IntegrationParameters = class {
   constructor(raw) {
     this.raw = raw || new RawIntegrationParameters();
@@ -11571,19 +12191,29 @@ var IntegrationParameters = class {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/dynamics/impulse_joint.js
+// ../rapier.js/rapier3d/pkg/dynamics/impulse_joint.js
 var JointType;
 (function(JointType2) {
   JointType2[JointType2["Revolute"] = 0] = "Revolute";
   JointType2[JointType2["Fixed"] = 1] = "Fixed";
   JointType2[JointType2["Prismatic"] = 2] = "Prismatic";
   JointType2[JointType2["Spherical"] = 3] = "Spherical";
+  JointType2[JointType2["Generic"] = 4] = "Generic";
 })(JointType || (JointType = {}));
 var MotorModel;
 (function(MotorModel2) {
   MotorModel2[MotorModel2["AccelerationBased"] = 0] = "AccelerationBased";
   MotorModel2[MotorModel2["ForceBased"] = 1] = "ForceBased";
 })(MotorModel || (MotorModel = {}));
+var JointAxesMask;
+(function(JointAxesMask2) {
+  JointAxesMask2[JointAxesMask2["X"] = 1] = "X";
+  JointAxesMask2[JointAxesMask2["Y"] = 2] = "Y";
+  JointAxesMask2[JointAxesMask2["Z"] = 4] = "Z";
+  JointAxesMask2[JointAxesMask2["AngX"] = 8] = "AngX";
+  JointAxesMask2[JointAxesMask2["AngY"] = 16] = "AngY";
+  JointAxesMask2[JointAxesMask2["AngZ"] = 32] = "AngZ";
+})(JointAxesMask || (JointAxesMask = {}));
 var ImpulseJoint = class _ImpulseJoint {
   constructor(rawSet, bodySet, handle) {
     this.rawSet = rawSet;
@@ -11600,6 +12230,8 @@ var ImpulseJoint = class _ImpulseJoint {
         return new FixedImpulseJoint(rawSet, bodySet, handle);
       case JointType.Spherical:
         return new SphericalImpulseJoint(rawSet, bodySet, handle);
+      case JointType.Generic:
+        return new GenericImpulseJoint(rawSet, bodySet, handle);
       default:
         return new _ImpulseJoint(rawSet, bodySet, handle);
     }
@@ -11757,6 +12389,8 @@ var RevoluteImpulseJoint = class extends UnitImpulseJoint {
     return RawJointAxis.AngX;
   }
 };
+var GenericImpulseJoint = class extends ImpulseJoint {
+};
 var SphericalImpulseJoint = class extends ImpulseJoint {
 };
 var JointData = class _JointData {
@@ -11785,6 +12419,30 @@ var JointData = class _JointData {
     return res;
   }
   // #if DIM3
+  /**
+   * Create a new joint descriptor that builds generic joints.
+   *
+   * A generic joint allows customizing its degrees of freedom
+   * by supplying a mask of the joint axes that should remain locked.
+   *
+   * @param anchor1 - Point where the joint is attached on the first rigid-body affected by this joint. Expressed in the
+   *                  local-space of the rigid-body.
+   * @param anchor2 - Point where the joint is attached on the second rigid-body affected by this joint. Expressed in the
+   *                  local-space of the rigid-body.
+   * @param axis - The X axis of the joint, expressed in the local-space of the rigid-bodies it is attached to.
+   * @param axesMask - Mask representing the locked axes of the joint. You can use logical OR to select these from
+   *                   the JointAxesMask enum. For example, passing (JointAxesMask.AngX || JointAxesMask.AngY) will
+   *                   create a joint locked in the X and Y rotational axes.
+   */
+  static generic(anchor1, anchor2, axis, axesMask) {
+    let res = new _JointData();
+    res.anchor1 = anchor1;
+    res.anchor2 = anchor2;
+    res.axis = axis;
+    res.axesMask = axesMask;
+    res.jointType = JointType.Generic;
+    return res;
+  }
   /**
    * Create a new joint descriptor that builds spherical joints.
    *
@@ -11871,6 +12529,11 @@ var JointData = class _JointData {
         result = RawGenericJoint.prismatic(rawA1, rawA2, rawAx, limitsEnabled, limitsMin, limitsMax);
         rawAx.free();
         break;
+      case JointType.Generic:
+        rawAx = VectorOps.intoRaw(this.axis);
+        let rawAxesMask = this.axesMask;
+        result = RawGenericJoint.generic(rawA1, rawA2, rawAx, rawAxesMask);
+        break;
       case JointType.Spherical:
         result = RawGenericJoint.spherical(rawA1, rawA2);
         break;
@@ -11886,7 +12549,7 @@ var JointData = class _JointData {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/dynamics/impulse_joint_set.js
+// ../rapier.js/rapier3d/pkg/dynamics/impulse_joint_set.js
 var ImpulseJointSet = class {
   constructor(raw) {
     this.raw = raw || new RawImpulseJointSet();
@@ -11998,7 +12661,7 @@ var ImpulseJointSet = class {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/dynamics/multibody_joint.js
+// ../rapier.js/rapier3d/pkg/dynamics/multibody_joint.js
 var MultibodyJoint = class _MultibodyJoint {
   constructor(rawSet, handle) {
     this.rawSet = rawSet;
@@ -12117,7 +12780,7 @@ var RevoluteMultibodyJoint = class extends UnitMultibodyJoint {
 var SphericalMultibodyJoint = class extends MultibodyJoint {
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/dynamics/multibody_joint_set.js
+// ../rapier.js/rapier3d/pkg/dynamics/multibody_joint_set.js
 var MultibodyJointSet = class {
   constructor(raw) {
     this.raw = raw || new RawMultibodyJointSet();
@@ -12224,7 +12887,7 @@ var MultibodyJointSet = class {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/dynamics/coefficient_combine_rule.js
+// ../rapier.js/rapier3d/pkg/dynamics/coefficient_combine_rule.js
 var CoefficientCombineRule;
 (function(CoefficientCombineRule2) {
   CoefficientCombineRule2[CoefficientCombineRule2["Average"] = 0] = "Average";
@@ -12233,7 +12896,7 @@ var CoefficientCombineRule;
   CoefficientCombineRule2[CoefficientCombineRule2["Max"] = 3] = "Max";
 })(CoefficientCombineRule || (CoefficientCombineRule = {}));
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/dynamics/ccd_solver.js
+// ../rapier.js/rapier3d/pkg/dynamics/ccd_solver.js
 var CCDSolver = class {
   constructor(raw) {
     this.raw = raw || new RawCCDSolver();
@@ -12249,7 +12912,7 @@ var CCDSolver = class {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/dynamics/island_manager.js
+// ../rapier.js/rapier3d/pkg/dynamics/island_manager.js
 var IslandManager = class {
   constructor(raw) {
     this.raw = raw || new RawIslandManager();
@@ -12275,7 +12938,7 @@ var IslandManager = class {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/geometry/broad_phase.js
+// ../rapier.js/rapier3d/pkg/geometry/broad_phase.js
 var BroadPhase = class {
   constructor(raw) {
     this.raw = raw || new RawBroadPhase();
@@ -12291,7 +12954,7 @@ var BroadPhase = class {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/geometry/narrow_phase.js
+// ../rapier.js/rapier3d/pkg/geometry/narrow_phase.js
 var NarrowPhase = class {
   constructor(raw) {
     this.raw = raw || new RawNarrowPhase();
@@ -12429,7 +13092,7 @@ var TempContactManifold = class {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/geometry/contact.js
+// ../rapier.js/rapier3d/pkg/geometry/contact.js
 var ShapeContact = class _ShapeContact {
   constructor(dist, point1, point2, normal1, normal2) {
     this.distance = dist;
@@ -12447,7 +13110,7 @@ var ShapeContact = class _ShapeContact {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/geometry/feature.js
+// ../rapier.js/rapier3d/pkg/geometry/feature.js
 var FeatureType;
 (function(FeatureType2) {
   FeatureType2[FeatureType2["Vertex"] = 0] = "Vertex";
@@ -12456,7 +13119,7 @@ var FeatureType;
   FeatureType2[FeatureType2["Unknown"] = 3] = "Unknown";
 })(FeatureType || (FeatureType = {}));
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/geometry/point.js
+// ../rapier.js/rapier3d/pkg/geometry/point.js
 var PointProjection = class _PointProjection {
   constructor(point, isInside) {
     this.point = point;
@@ -12491,7 +13154,7 @@ var PointColliderProjection = class _PointColliderProjection {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/geometry/ray.js
+// ../rapier.js/rapier3d/pkg/geometry/ray.js
 var Ray = class {
   /**
    * Builds a ray from its origin and direction.
@@ -12566,7 +13229,7 @@ var RayColliderToi = class _RayColliderToi {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/geometry/toi.js
+// ../rapier.js/rapier3d/pkg/geometry/toi.js
 var ShapeTOI = class _ShapeTOI {
   constructor(toi, witness1, witness2, normal1, normal2) {
     this.toi = toi;
@@ -12597,7 +13260,7 @@ var ShapeColliderTOI = class _ShapeColliderTOI extends ShapeTOI {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/geometry/shape.js
+// ../rapier.js/rapier3d/pkg/geometry/shape.js
 var Shape = class {
   /**
    * instant mode without cache
@@ -13202,7 +13865,1518 @@ var RoundCone = class extends Shape {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/geometry/collider.js
+// ../rapier.js/rapier3d/pkg/pipeline/physics_pipeline.js
+var PhysicsPipeline = class {
+  constructor(raw) {
+    this.raw = raw || new RawPhysicsPipeline();
+  }
+  free() {
+    if (!!this.raw) {
+      this.raw.free();
+    }
+    this.raw = void 0;
+  }
+  step(gravity, integrationParameters, islands, broadPhase, narrowPhase, bodies, colliders, impulseJoints, multibodyJoints, ccdSolver, eventQueue, hooks) {
+    let rawG = VectorOps.intoRaw(gravity);
+    if (!!eventQueue) {
+      this.raw.stepWithEvents(rawG, integrationParameters.raw, islands.raw, broadPhase.raw, narrowPhase.raw, bodies.raw, colliders.raw, impulseJoints.raw, multibodyJoints.raw, ccdSolver.raw, eventQueue.raw, hooks, !!hooks ? hooks.filterContactPair : null, !!hooks ? hooks.filterIntersectionPair : null);
+    } else {
+      this.raw.step(rawG, integrationParameters.raw, islands.raw, broadPhase.raw, narrowPhase.raw, bodies.raw, colliders.raw, impulseJoints.raw, multibodyJoints.raw, ccdSolver.raw);
+    }
+    rawG.free();
+  }
+};
+
+// ../rapier.js/rapier3d/pkg/pipeline/query_pipeline.js
+var QueryFilterFlags;
+(function(QueryFilterFlags2) {
+  QueryFilterFlags2[QueryFilterFlags2["EXCLUDE_FIXED"] = 1] = "EXCLUDE_FIXED";
+  QueryFilterFlags2[QueryFilterFlags2["EXCLUDE_KINEMATIC"] = 2] = "EXCLUDE_KINEMATIC";
+  QueryFilterFlags2[QueryFilterFlags2["EXCLUDE_DYNAMIC"] = 4] = "EXCLUDE_DYNAMIC";
+  QueryFilterFlags2[QueryFilterFlags2["EXCLUDE_SENSORS"] = 8] = "EXCLUDE_SENSORS";
+  QueryFilterFlags2[QueryFilterFlags2["EXCLUDE_SOLIDS"] = 16] = "EXCLUDE_SOLIDS";
+  QueryFilterFlags2[QueryFilterFlags2["ONLY_DYNAMIC"] = 3] = "ONLY_DYNAMIC";
+  QueryFilterFlags2[QueryFilterFlags2["ONLY_KINEMATIC"] = 5] = "ONLY_KINEMATIC";
+  QueryFilterFlags2[QueryFilterFlags2["ONLY_FIXED"] = 6] = "ONLY_FIXED";
+})(QueryFilterFlags || (QueryFilterFlags = {}));
+var QueryPipeline = class {
+  constructor(raw) {
+    this.raw = raw || new RawQueryPipeline();
+  }
+  /**
+   * Release the WASM memory occupied by this query pipeline.
+   */
+  free() {
+    if (!!this.raw) {
+      this.raw.free();
+    }
+    this.raw = void 0;
+  }
+  /**
+   * Updates the acceleration structure of the query pipeline.
+   * @param bodies - The set of rigid-bodies taking part in this pipeline.
+   * @param colliders - The set of colliders taking part in this pipeline.
+   */
+  update(bodies, colliders) {
+    this.raw.update(bodies.raw, colliders.raw);
+  }
+  /**
+   * Find the closest intersection between a ray and a set of collider.
+   *
+   * @param colliders - The set of colliders taking part in this pipeline.
+   * @param ray - The ray to cast.
+   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
+   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
+   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
+   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
+   *   whereas `false` implies that all shapes are hollow for this ray-cast.
+   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
+   * @param filter - The callback to filter out which collider will be hit.
+   */
+  castRay(bodies, colliders, ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    let rawOrig = VectorOps.intoRaw(ray.origin);
+    let rawDir = VectorOps.intoRaw(ray.dir);
+    let result = RayColliderToi.fromRaw(colliders, this.raw.castRay(bodies.raw, colliders.raw, rawOrig, rawDir, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate));
+    rawOrig.free();
+    rawDir.free();
+    return result;
+  }
+  /**
+   * Find the closest intersection between a ray and a set of collider.
+   *
+   * This also computes the normal at the hit point.
+   * @param colliders - The set of colliders taking part in this pipeline.
+   * @param ray - The ray to cast.
+   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
+   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
+   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
+   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
+   *   whereas `false` implies that all shapes are hollow for this ray-cast.
+   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
+   */
+  castRayAndGetNormal(bodies, colliders, ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    let rawOrig = VectorOps.intoRaw(ray.origin);
+    let rawDir = VectorOps.intoRaw(ray.dir);
+    let result = RayColliderIntersection.fromRaw(colliders, this.raw.castRayAndGetNormal(bodies.raw, colliders.raw, rawOrig, rawDir, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate));
+    rawOrig.free();
+    rawDir.free();
+    return result;
+  }
+  /**
+   * Cast a ray and collects all the intersections between a ray and the scene.
+   *
+   * @param colliders - The set of colliders taking part in this pipeline.
+   * @param ray - The ray to cast.
+   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
+   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
+   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
+   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
+   *   whereas `false` implies that all shapes are hollow for this ray-cast.
+   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
+   * @param callback - The callback called once per hit (in no particular order) between a ray and a collider.
+   *   If this callback returns `false`, then the cast will stop and no further hits will be detected/reported.
+   */
+  intersectionsWithRay(bodies, colliders, ray, maxToi, solid, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    let rawOrig = VectorOps.intoRaw(ray.origin);
+    let rawDir = VectorOps.intoRaw(ray.dir);
+    let rawCallback = (rawInter) => {
+      return callback(RayColliderIntersection.fromRaw(colliders, rawInter));
+    };
+    this.raw.intersectionsWithRay(bodies.raw, colliders.raw, rawOrig, rawDir, maxToi, solid, rawCallback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate);
+    rawOrig.free();
+    rawDir.free();
+  }
+  /**
+   * Gets the handle of up to one collider intersecting the given shape.
+   *
+   * @param colliders - The set of colliders taking part in this pipeline.
+   * @param shapePos - The position of the shape used for the intersection test.
+   * @param shapeRot - The orientation of the shape used for the intersection test.
+   * @param shape - The shape used for the intersection test.
+   * @param groups - The bit groups and filter associated to the ray, in order to only
+   *   hit the colliders with collision groups compatible with the ray's group.
+   */
+  intersectionWithShape(bodies, colliders, shapePos, shapeRot, shape, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    let rawPos = VectorOps.intoRaw(shapePos);
+    let rawRot = RotationOps.intoRaw(shapeRot);
+    let rawShape = shape.intoRaw();
+    let result = this.raw.intersectionWithShape(bodies.raw, colliders.raw, rawPos, rawRot, rawShape, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate);
+    rawPos.free();
+    rawRot.free();
+    rawShape.free();
+    return result;
+  }
+  /**
+   * Find the projection of a point on the closest collider.
+   *
+   * @param colliders - The set of colliders taking part in this pipeline.
+   * @param point - The point to project.
+   * @param solid - If this is set to `true` then the collider shapes are considered to
+   *   be plain (if the point is located inside of a plain shape, its projection is the point
+   *   itself). If it is set to `false` the collider shapes are considered to be hollow
+   *   (if the point is located inside of an hollow shape, it is projected on the shape's
+   *   boundary).
+   * @param groups - The bit groups and filter associated to the point to project, in order to only
+   *   project on colliders with collision groups compatible with the ray's group.
+   */
+  projectPoint(bodies, colliders, point, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    let rawPoint = VectorOps.intoRaw(point);
+    let result = PointColliderProjection.fromRaw(colliders, this.raw.projectPoint(bodies.raw, colliders.raw, rawPoint, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate));
+    rawPoint.free();
+    return result;
+  }
+  /**
+   * Find the projection of a point on the closest collider.
+   *
+   * @param colliders - The set of colliders taking part in this pipeline.
+   * @param point - The point to project.
+   * @param groups - The bit groups and filter associated to the point to project, in order to only
+   *   project on colliders with collision groups compatible with the ray's group.
+   */
+  projectPointAndGetFeature(bodies, colliders, point, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    let rawPoint = VectorOps.intoRaw(point);
+    let result = PointColliderProjection.fromRaw(colliders, this.raw.projectPointAndGetFeature(bodies.raw, colliders.raw, rawPoint, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate));
+    rawPoint.free();
+    return result;
+  }
+  /**
+   * Find all the colliders containing the given point.
+   *
+   * @param colliders - The set of colliders taking part in this pipeline.
+   * @param point - The point used for the containment test.
+   * @param groups - The bit groups and filter associated to the point to test, in order to only
+   *   test on colliders with collision groups compatible with the ray's group.
+   * @param callback - A function called with the handles of each collider with a shape
+   *   containing the `point`.
+   */
+  intersectionsWithPoint(bodies, colliders, point, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    let rawPoint = VectorOps.intoRaw(point);
+    this.raw.intersectionsWithPoint(bodies.raw, colliders.raw, rawPoint, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate);
+    rawPoint.free();
+  }
+  /**
+   * Casts a shape at a constant linear velocity and retrieve the first collider it hits.
+   * This is similar to ray-casting except that we are casting a whole shape instead of
+   * just a point (the ray origin).
+   *
+   * @param colliders - The set of colliders taking part in this pipeline.
+   * @param shapePos - The initial position of the shape to cast.
+   * @param shapeRot - The initial rotation of the shape to cast.
+   * @param shapeVel - The constant velocity of the shape to cast (i.e. the cast direction).
+   * @param shape - The shape to cast.
+   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
+   *   limits the distance traveled by the shape to `shapeVel.norm() * maxToi`.
+   * @param stopAtPenetration - If set to `false`, the linear shape-cast won’t immediately stop if
+   *   the shape is penetrating another shape at its starting point **and** its trajectory is such
+   *   that it’s on a path to exist that penetration state.
+   * @param groups - The bit groups and filter associated to the shape to cast, in order to only
+   *   test on colliders with collision groups compatible with this group.
+   */
+  castShape(bodies, colliders, shapePos, shapeRot, shapeVel, shape, maxToi, stopAtPenetration, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    let rawPos = VectorOps.intoRaw(shapePos);
+    let rawRot = RotationOps.intoRaw(shapeRot);
+    let rawVel = VectorOps.intoRaw(shapeVel);
+    let rawShape = shape.intoRaw();
+    let result = ShapeColliderTOI.fromRaw(colliders, this.raw.castShape(bodies.raw, colliders.raw, rawPos, rawRot, rawVel, rawShape, maxToi, stopAtPenetration, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate));
+    rawPos.free();
+    rawRot.free();
+    rawVel.free();
+    rawShape.free();
+    return result;
+  }
+  /**
+   * Retrieve all the colliders intersecting the given shape.
+   *
+   * @param colliders - The set of colliders taking part in this pipeline.
+   * @param shapePos - The position of the shape to test.
+   * @param shapeRot - The orientation of the shape to test.
+   * @param shape - The shape to test.
+   * @param groups - The bit groups and filter associated to the shape to test, in order to only
+   *   test on colliders with collision groups compatible with this group.
+   * @param callback - A function called with the handles of each collider intersecting the `shape`.
+   */
+  intersectionsWithShape(bodies, colliders, shapePos, shapeRot, shape, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    let rawPos = VectorOps.intoRaw(shapePos);
+    let rawRot = RotationOps.intoRaw(shapeRot);
+    let rawShape = shape.intoRaw();
+    this.raw.intersectionsWithShape(bodies.raw, colliders.raw, rawPos, rawRot, rawShape, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate);
+    rawPos.free();
+    rawRot.free();
+    rawShape.free();
+  }
+  /**
+   * Finds the handles of all the colliders with an AABB intersecting the given AABB.
+   *
+   * @param aabbCenter - The center of the AABB to test.
+   * @param aabbHalfExtents - The half-extents of the AABB to test.
+   * @param callback - The callback that will be called with the handles of all the colliders
+   *                   currently intersecting the given AABB.
+   */
+  collidersWithAabbIntersectingAabb(aabbCenter, aabbHalfExtents, callback) {
+    let rawCenter = VectorOps.intoRaw(aabbCenter);
+    let rawHalfExtents = VectorOps.intoRaw(aabbHalfExtents);
+    this.raw.collidersWithAabbIntersectingAabb(rawCenter, rawHalfExtents, callback);
+    rawCenter.free();
+    rawHalfExtents.free();
+  }
+};
+
+// ../rapier.js/rapier3d/pkg/pipeline/serialization_pipeline.js
+var SerializationPipeline = class {
+  constructor(raw) {
+    this.raw = raw || new RawSerializationPipeline();
+  }
+  /**
+   * Release the WASM memory occupied by this serialization pipeline.
+   */
+  free() {
+    if (!!this.raw) {
+      this.raw.free();
+    }
+    this.raw = void 0;
+  }
+  /**
+   * Serialize a complete physics state into a single byte array.
+   * @param gravity - The current gravity affecting the simulation.
+   * @param integrationParameters - The integration parameters of the simulation.
+   * @param broadPhase - The broad-phase of the simulation.
+   * @param narrowPhase - The narrow-phase of the simulation.
+   * @param bodies - The rigid-bodies taking part into the simulation.
+   * @param colliders - The colliders taking part into the simulation.
+   * @param impulseJoints - The impulse joints taking part into the simulation.
+   * @param multibodyJoints - The multibody joints taking part into the simulation.
+   */
+  serializeAll(gravity, integrationParameters, islands, broadPhase, narrowPhase, bodies, colliders, impulseJoints, multibodyJoints) {
+    let rawGra = VectorOps.intoRaw(gravity);
+    const res = this.raw.serializeAll(rawGra, integrationParameters.raw, islands.raw, broadPhase.raw, narrowPhase.raw, bodies.raw, colliders.raw, impulseJoints.raw, multibodyJoints.raw);
+    rawGra.free();
+    return res;
+  }
+  /**
+   * Deserialize the complete physics state from a single byte array.
+   *
+   * @param data - The byte array to deserialize.
+   */
+  deserializeAll(data) {
+    return World.fromRaw(this.raw.deserializeAll(data));
+  }
+};
+
+// ../rapier.js/rapier3d/pkg/pipeline/debug_render_pipeline.js
+var DebugRenderBuffers = class {
+  constructor(vertices, colors) {
+    this.vertices = vertices;
+    this.colors = colors;
+  }
+};
+var DebugRenderPipeline = class {
+  constructor(raw) {
+    this.raw = raw || new RawDebugRenderPipeline();
+  }
+  /**
+   * Release the WASM memory occupied by this serialization pipeline.
+   */
+  free() {
+    if (!!this.raw) {
+      this.raw.free();
+    }
+    this.raw = void 0;
+    this.vertices = void 0;
+    this.colors = void 0;
+  }
+  render(bodies, colliders, impulse_joints, multibody_joints, narrow_phase) {
+    this.raw.render(bodies.raw, colliders.raw, impulse_joints.raw, multibody_joints.raw, narrow_phase.raw);
+    this.vertices = this.raw.vertices();
+    this.colors = this.raw.colors();
+  }
+};
+
+// ../rapier.js/rapier3d/pkg/control/character_controller.js
+var CharacterCollision = class {
+};
+var KinematicCharacterController = class {
+  constructor(offset, params, bodies, colliders, queries) {
+    this.params = params;
+    this.bodies = bodies;
+    this.colliders = colliders;
+    this.queries = queries;
+    this.raw = new RawKinematicCharacterController(offset);
+    this.rawCharacterCollision = new RawCharacterCollision();
+    this._applyImpulsesToDynamicBodies = false;
+    this._characterMass = null;
+  }
+  /** @internal */
+  free() {
+    if (!!this.raw) {
+      this.raw.free();
+      this.rawCharacterCollision.free();
+    }
+    this.raw = void 0;
+    this.rawCharacterCollision = void 0;
+  }
+  /**
+   * The direction that goes "up". Used to determine where the floor is, and the floor’s angle.
+   */
+  up() {
+    return this.raw.up();
+  }
+  /**
+   * Sets the direction that goes "up". Used to determine where the floor is, and the floor’s angle.
+   */
+  setUp(vector) {
+    let rawVect = VectorOps.intoRaw(vector);
+    return this.raw.setUp(rawVect);
+    rawVect.free();
+  }
+  applyImpulsesToDynamicBodies() {
+    return this._applyImpulsesToDynamicBodies;
+  }
+  setApplyImpulsesToDynamicBodies(enabled) {
+    this._applyImpulsesToDynamicBodies = enabled;
+  }
+  /**
+   * Returns the custom value of the character mass, if it was set by `this.setCharacterMass`.
+   */
+  characterMass() {
+    return this._characterMass;
+  }
+  /**
+   * Set the mass of the character to be used for impulse resolution if `self.applyImpulsesToDynamicBodies`
+   * is set to `true`.
+   *
+   * If no character mass is set explicitly (or if it is set to `null`) it is automatically assumed to be equal
+   * to the mass of the rigid-body the character collider is attached to; or equal to 0 if the character collider
+   * isn’t attached to any rigid-body.
+   *
+   * @param mass - The mass to set.
+   */
+  setCharacterMass(mass) {
+    this._characterMass = mass;
+  }
+  /**
+   * A small gap to preserve between the character and its surroundings.
+   *
+   * This value should not be too large to avoid visual artifacts, but shouldn’t be too small
+   * (must not be zero) to improve numerical stability of the character controller.
+   */
+  offset() {
+    return this.raw.offset();
+  }
+  /**
+   * Sets a small gap to preserve between the character and its surroundings.
+   *
+   * This value should not be too large to avoid visual artifacts, but shouldn’t be too small
+   * (must not be zero) to improve numerical stability of the character controller.
+   */
+  setOffset(value) {
+    this.raw.setOffset(value);
+  }
+  /**
+   * Is sliding against obstacles enabled?
+   */
+  slideEnabled() {
+    return this.raw.slideEnabled();
+  }
+  /**
+   * Enable or disable sliding against obstacles.
+   */
+  setSlideEnabled(enabled) {
+    this.raw.setSlideEnabled(enabled);
+  }
+  /**
+   * The maximum step height a character can automatically step over.
+   */
+  autostepMaxHeight() {
+    return this.raw.autostepMaxHeight();
+  }
+  /**
+   * The minimum width of free space that must be available after stepping on a stair.
+   */
+  autostepMinWidth() {
+    return this.raw.autostepMinWidth();
+  }
+  /**
+   * Can the character automatically step over dynamic bodies too?
+   */
+  autostepIncludesDynamicBodies() {
+    return this.raw.autostepIncludesDynamicBodies();
+  }
+  /**
+   * Is automatically stepping over small objects enabled?
+   */
+  autostepEnabled() {
+    return this.raw.autostepEnabled();
+  }
+  /**
+   * Enabled automatically stepping over small objects.
+   *
+   * @param maxHeight - The maximum step height a character can automatically step over.
+   * @param minWidth - The minimum width of free space that must be available after stepping on a stair.
+   * @param includeDynamicBodies - Can the character automatically step over dynamic bodies too?
+   */
+  enableAutostep(maxHeight, minWidth, includeDynamicBodies) {
+    this.raw.enableAutostep(maxHeight, minWidth, includeDynamicBodies);
+  }
+  /**
+   * Disable automatically stepping over small objects.
+   */
+  disableAutostep() {
+    return this.raw.disableAutostep();
+  }
+  /**
+   * The maximum angle (radians) between the floor’s normal and the `up` vector that the
+   * character is able to climb.
+   */
+  maxSlopeClimbAngle() {
+    return this.raw.maxSlopeClimbAngle();
+  }
+  /**
+   * Sets the maximum angle (radians) between the floor’s normal and the `up` vector that the
+   * character is able to climb.
+   */
+  setMaxSlopeClimbAngle(angle2) {
+    this.raw.setMaxSlopeClimbAngle(angle2);
+  }
+  /**
+   * The minimum angle (radians) between the floor’s normal and the `up` vector before the
+   * character starts to slide down automatically.
+   */
+  minSlopeSlideAngle() {
+    return this.raw.minSlopeSlideAngle();
+  }
+  /**
+   * Sets the minimum angle (radians) between the floor’s normal and the `up` vector before the
+   * character starts to slide down automatically.
+   */
+  setMinSlopeSlideAngle(angle2) {
+    this.raw.setMinSlopeSlideAngle(angle2);
+  }
+  /**
+   * If snap-to-ground is enabled, should the character be automatically snapped to the ground if
+   * the distance between the ground and its feet are smaller than the specified threshold?
+   */
+  snapToGroundDistance() {
+    return this.raw.snapToGroundDistance();
+  }
+  /**
+   * Enables automatically snapping the character to the ground if the distance between
+   * the ground and its feet are smaller than the specified threshold.
+   */
+  enableSnapToGround(distance3) {
+    this.raw.enableSnapToGround(distance3);
+  }
+  /**
+   * Disables automatically snapping the character to the ground.
+   */
+  disableSnapToGround() {
+    this.raw.disableSnapToGround();
+  }
+  /**
+   * Is automatically snapping the character to the ground enabled?
+   */
+  snapToGroundEnabled() {
+    return this.raw.snapToGroundEnabled();
+  }
+  /**
+   * Computes the movement the given collider is able to execute after hitting and sliding on obstacles.
+   *
+   * @param collider - The collider to move.
+   * @param desiredTranslationDelta - The desired collider movement.
+   * @param filterFlags - Flags for excluding whole subsets of colliders from the obstacles taken into account.
+   * @param filterGroups - Groups for excluding colliders with incompatible collision groups from the obstacles
+   *                       taken into account.
+   * @param filterPredicate - Any collider for which this closure returns `false` will be excluded from the
+   *                          obstacles taken into account.
+   */
+  computeColliderMovement(collider, desiredTranslationDelta, filterFlags, filterGroups, filterPredicate) {
+    let rawTranslationDelta = VectorOps.intoRaw(desiredTranslationDelta);
+    this.raw.computeColliderMovement(this.params.dt, this.bodies.raw, this.colliders.raw, this.queries.raw, collider.handle, rawTranslationDelta, this._applyImpulsesToDynamicBodies, this._characterMass, filterFlags, filterGroups, this.colliders.castClosure(filterPredicate));
+    rawTranslationDelta.free();
+  }
+  /**
+   * The movement computed by the last call to `this.computeColliderMovement`.
+   */
+  computedMovement() {
+    return VectorOps.fromRaw(this.raw.computedMovement());
+  }
+  /**
+   * The result of ground detection computed by the last call to `this.computeColliderMovement`.
+   */
+  computedGrounded() {
+    return this.raw.computedGrounded();
+  }
+  /**
+   * The number of collisions against obstacles detected along the path of the last call
+   * to `this.computeColliderMovement`.
+   */
+  numComputedCollisions() {
+    return this.raw.numComputedCollisions();
+  }
+  /**
+   * Returns the collision against one of the obstacles detected along the path of the last
+   * call to `this.computeColliderMovement`.
+   *
+   * @param i - The i-th collision will be returned.
+   * @param out - If this argument is set, it will be filled with the collision information.
+   */
+  computedCollision(i, out) {
+    if (!this.raw.computedCollision(i, this.rawCharacterCollision)) {
+      return null;
+    } else {
+      let c = this.rawCharacterCollision;
+      out = out !== null && out !== void 0 ? out : new CharacterCollision();
+      out.translationDeltaApplied = VectorOps.fromRaw(c.translationDeltaApplied());
+      out.translationDeltaRemaining = VectorOps.fromRaw(c.translationDeltaRemaining());
+      out.toi = c.toi();
+      out.witness1 = VectorOps.fromRaw(c.worldWitness1());
+      out.witness2 = VectorOps.fromRaw(c.worldWitness2());
+      out.normal1 = VectorOps.fromRaw(c.worldNormal1());
+      out.normal2 = VectorOps.fromRaw(c.worldNormal2());
+      out.collider = this.colliders.get(c.handle());
+      return out;
+    }
+  }
+};
+
+// ../rapier.js/rapier3d/pkg/control/ray_cast_vehicle_controller.js
+var DynamicRayCastVehicleController = class {
+  constructor(chassis, bodies, colliders, queries) {
+    this.raw = new RawDynamicRayCastVehicleController(chassis.handle);
+    this.bodies = bodies;
+    this.colliders = colliders;
+    this.queries = queries;
+    this._chassis = chassis;
+  }
+  /** @internal */
+  free() {
+    if (!!this.raw) {
+      this.raw.free();
+    }
+    this.raw = void 0;
+  }
+  /**
+   * Updates the vehicle’s velocity based on its suspension, engine force, and brake.
+   *
+   * This directly updates the velocity of its chassis rigid-body.
+   *
+   * @param dt - Time increment used to integrate forces.
+   * @param filterFlags - Flag to exclude categories of objects from the wheels’ ray-cast.
+   * @param filterGroups - Only colliders compatible with these groups will be hit by the wheels’ ray-casts.
+   * @param filterPredicate - Callback to filter out which collider will be hit by the wheels’ ray-casts.
+   */
+  updateVehicle(dt, filterFlags, filterGroups, filterPredicate) {
+    this.raw.update_vehicle(dt, this.bodies.raw, this.colliders.raw, this.queries.raw, filterFlags, filterGroups, this.colliders.castClosure(filterPredicate));
+  }
+  /**
+   * The current forward speed of the vehicle.
+   */
+  currentVehicleSpeed() {
+    return this.raw.current_vehicle_speed();
+  }
+  /**
+   * The rigid-body used as the chassis.
+   */
+  chassis() {
+    return this._chassis;
+  }
+  /**
+   * The chassis’ local _up_ direction (`0 = x, 1 = y, 2 = z`).
+   */
+  get indexUpAxis() {
+    return this.raw.index_up_axis();
+  }
+  /**
+   * Sets the chassis’ local _up_ direction (`0 = x, 1 = y, 2 = z`).
+   */
+  set indexUpAxis(axis) {
+    this.raw.set_index_up_axis(axis);
+  }
+  /**
+   * The chassis’ local _forward_ direction (`0 = x, 1 = y, 2 = z`).
+   */
+  get indexForwardAxis() {
+    return this.raw.index_forward_axis();
+  }
+  /**
+   * Sets the chassis’ local _forward_ direction (`0 = x, 1 = y, 2 = z`).
+   */
+  set setIndexForwardAxis(axis) {
+    this.raw.set_index_forward_axis(axis);
+  }
+  /**
+   * Adds a new wheel attached to this vehicle.
+   * @param chassisConnectionCs  - The position of the wheel relative to the chassis.
+   * @param directionCs - The direction of the wheel’s suspension, relative to the chassis. The ray-casting will
+   *                      happen following this direction to detect the ground.
+   * @param axleCs - The wheel’s axle axis, relative to the chassis.
+   * @param suspensionRestLength - The rest length of the wheel’s suspension spring.
+   * @param radius - The wheel’s radius.
+   */
+  addWheel(chassisConnectionCs, directionCs, axleCs, suspensionRestLength, radius) {
+    let rawChassisConnectionCs = VectorOps.intoRaw(chassisConnectionCs);
+    let rawDirectionCs = VectorOps.intoRaw(directionCs);
+    let rawAxleCs = VectorOps.intoRaw(axleCs);
+    this.raw.add_wheel(rawChassisConnectionCs, rawDirectionCs, rawAxleCs, suspensionRestLength, radius);
+    rawChassisConnectionCs.free();
+    rawDirectionCs.free();
+    rawAxleCs.free();
+  }
+  /**
+   * The number of wheels attached to this vehicle.
+   */
+  numWheels() {
+    return this.raw.num_wheels();
+  }
+  /*
+   *
+   * Access to wheel properties.
+   *
+   */
+  /*
+   * Getters + setters
+   */
+  /**
+   * The position of the i-th wheel, relative to the chassis.
+   */
+  wheelChassisConnectionPointCs(i) {
+    return VectorOps.fromRaw(this.raw.wheel_chassis_connection_point_cs(i));
+  }
+  /**
+   * Sets the position of the i-th wheel, relative to the chassis.
+   */
+  setWheelChassisConnectionPointCs(i, value) {
+    let rawValue = VectorOps.intoRaw(value);
+    this.raw.set_wheel_chassis_connection_point_cs(i, rawValue);
+    rawValue.free();
+  }
+  /**
+   * The rest length of the i-th wheel’s suspension spring.
+   */
+  wheelSuspensionRestLength(i) {
+    return this.raw.wheel_suspension_rest_length(i);
+  }
+  /**
+   * Sets the rest length of the i-th wheel’s suspension spring.
+   */
+  setWheelSuspensionRestLength(i, value) {
+    this.raw.set_wheel_suspension_rest_length(i, value);
+  }
+  /**
+   * The maximum distance the i-th wheel suspension can travel before and after its resting length.
+   */
+  wheelMaxSuspensionTravel(i) {
+    return this.raw.wheel_max_suspension_travel(i);
+  }
+  /**
+   * Sets the maximum distance the i-th wheel suspension can travel before and after its resting length.
+   */
+  setWheelMaxSuspensionTravel(i, value) {
+    this.raw.set_wheel_max_suspension_travel(i, value);
+  }
+  /**
+   * The i-th wheel’s radius.
+   */
+  wheelRadius(i) {
+    return this.raw.wheel_radius(i);
+  }
+  /**
+   * Sets the i-th wheel’s radius.
+   */
+  setWheelRadius(i, value) {
+    this.raw.set_wheel_radius(i, value);
+  }
+  /**
+   * The i-th wheel’s suspension stiffness.
+   *
+   * Increase this value if the suspension appears to not push the vehicle strong enough.
+   */
+  wheelSuspensionStiffness(i) {
+    return this.raw.wheel_suspension_stiffness(i);
+  }
+  /**
+   * Sets the i-th wheel’s suspension stiffness.
+   *
+   * Increase this value if the suspension appears to not push the vehicle strong enough.
+   */
+  setWheelSuspensionStiffness(i, value) {
+    this.raw.set_wheel_suspension_stiffness(i, value);
+  }
+  /**
+   * The i-th wheel’s suspension’s damping when it is being compressed.
+   */
+  wheelSuspensionCompression(i) {
+    return this.raw.wheel_suspension_compression(i);
+  }
+  /**
+   * The i-th wheel’s suspension’s damping when it is being compressed.
+   */
+  setWheelSuspensionCompression(i, value) {
+    this.raw.set_wheel_suspension_compression(i, value);
+  }
+  /**
+   * The i-th wheel’s suspension’s damping when it is being released.
+   *
+   * Increase this value if the suspension appears to overshoot.
+   */
+  wheelSuspensionRelaxation(i) {
+    return this.raw.wheel_suspension_relaxation(i);
+  }
+  /**
+   * Sets the i-th wheel’s suspension’s damping when it is being released.
+   *
+   * Increase this value if the suspension appears to overshoot.
+   */
+  setWheelSuspensionRelaxation(i, value) {
+    this.raw.set_wheel_suspension_relaxation(i, value);
+  }
+  /**
+   * The maximum force applied by the i-th wheel’s suspension.
+   */
+  wheelMaxSuspensionForce(i) {
+    return this.raw.wheel_max_suspension_force(i);
+  }
+  /**
+   * Sets the maximum force applied by the i-th wheel’s suspension.
+   */
+  setWheelMaxSuspensionForce(i, value) {
+    this.raw.set_wheel_max_suspension_force(i, value);
+  }
+  /**
+   * The maximum amount of braking impulse applied on the i-th wheel to slow down the vehicle.
+   */
+  wheelBrake(i) {
+    return this.raw.wheel_brake(i);
+  }
+  /**
+   * Set the maximum amount of braking impulse applied on the i-th wheel to slow down the vehicle.
+   */
+  setWheelBrake(i, value) {
+    this.raw.set_wheel_brake(i, value);
+  }
+  /**
+   * The steering angle (radians) for the i-th wheel.
+   */
+  wheelSteering(i) {
+    return this.raw.wheel_steering(i);
+  }
+  /**
+   * Sets the steering angle (radians) for the i-th wheel.
+   */
+  setWheelSteering(i, value) {
+    this.raw.set_wheel_steering(i, value);
+  }
+  /**
+   * The forward force applied by the i-th wheel on the chassis.
+   */
+  wheelEngineForce(i) {
+    return this.raw.wheel_engine_force(i);
+  }
+  /**
+   * Sets the forward force applied by the i-th wheel on the chassis.
+   */
+  setWheelEngineForce(i, value) {
+    this.raw.set_wheel_engine_force(i, value);
+  }
+  /**
+   * The direction of the i-th wheel’s suspension, relative to the chassis.
+   *
+   * The ray-casting will happen following this direction to detect the ground.
+   */
+  wheelDirectionCs(i) {
+    return VectorOps.fromRaw(this.raw.wheel_direction_cs(i));
+  }
+  /**
+   * Sets the direction of the i-th wheel’s suspension, relative to the chassis.
+   *
+   * The ray-casting will happen following this direction to detect the ground.
+   */
+  setWheelDirectionCs(i, value) {
+    let rawValue = VectorOps.intoRaw(value);
+    this.raw.set_wheel_direction_cs(i, rawValue);
+    rawValue.free();
+  }
+  /**
+   * The i-th wheel’s axle axis, relative to the chassis.
+   *
+   * The axis index defined as 0 = X, 1 = Y, 2 = Z.
+   */
+  wheelAxleCs(i) {
+    return VectorOps.fromRaw(this.raw.wheel_axle_cs(i));
+  }
+  /**
+   * Sets the i-th wheel’s axle axis, relative to the chassis.
+   *
+   * The axis index defined as 0 = X, 1 = Y, 2 = Z.
+   */
+  setWheelAxleCs(i, value) {
+    let rawValue = VectorOps.intoRaw(value);
+    this.raw.set_wheel_axle_cs(i, rawValue);
+    rawValue.free();
+  }
+  /**
+   * Parameter controlling how much traction the tire has.
+   *
+   * The larger the value, the more instantaneous braking will happen (with the risk of
+   * causing the vehicle to flip if it’s too strong).
+   */
+  wheelFrictionSlip(i) {
+    return this.raw.wheel_friction_slip(i);
+  }
+  /**
+   * Sets the parameter controlling how much traction the tire has.
+   *
+   * The larger the value, the more instantaneous braking will happen (with the risk of
+   * causing the vehicle to flip if it’s too strong).
+   */
+  setWheelFrictionSlip(i, value) {
+    this.raw.set_wheel_friction_slip(i, value);
+  }
+  /*
+   * Getters only.
+   */
+  /**
+   *  The i-th wheel’s current rotation angle (radians) on its axle.
+   */
+  wheelRotation(i) {
+    return this.raw.wheel_rotation(i);
+  }
+  /**
+   *  The forward impulses applied by the i-th wheel on the chassis.
+   */
+  wheelForwardImpulse(i) {
+    return this.raw.wheel_forward_impulse(i);
+  }
+  /**
+   *  The side impulses applied by the i-th wheel on the chassis.
+   */
+  wheelSideImpulse(i) {
+    return this.raw.wheel_side_impulse(i);
+  }
+  /**
+   *  The force applied by the i-th wheel suspension.
+   */
+  wheelSuspensionForce(i) {
+    return this.raw.wheel_suspension_force(i);
+  }
+  /**
+   *  The (world-space) contact normal between the i-th wheel and the floor.
+   */
+  wheelContactNormal(i) {
+    return VectorOps.fromRaw(this.raw.wheel_contact_normal_ws(i));
+  }
+  /**
+   *  The (world-space) point hit by the wheel’s ray-cast for the i-th wheel.
+   */
+  wheelContactPoint(i) {
+    return VectorOps.fromRaw(this.raw.wheel_contact_point_ws(i));
+  }
+  /**
+   *  The suspension length for the i-th wheel.
+   */
+  wheelSuspensionLength(i) {
+    return this.raw.wheel_suspension_length(i);
+  }
+  /**
+   *  The (world-space) starting point of the ray-cast for the i-th wheel.
+   */
+  wheelHardPoint(i) {
+    return VectorOps.fromRaw(this.raw.wheel_hard_point_ws(i));
+  }
+  /**
+   *  Is the i-th wheel in contact with the ground?
+   */
+  wheelIsInContact(i) {
+    return this.raw.wheel_is_in_contact(i);
+  }
+  /**
+   *  The collider hit by the ray-cast for the i-th wheel.
+   */
+  wheelGroundObject(i) {
+    return this.colliders.get(this.raw.wheel_ground_object(i));
+  }
+};
+
+// ../rapier.js/rapier3d/pkg/pipeline/world.js
+var World = class _World {
+  constructor(gravity, rawIntegrationParameters, rawIslands, rawBroadPhase, rawNarrowPhase, rawBodies, rawColliders, rawImpulseJoints, rawMultibodyJoints, rawCCDSolver, rawQueryPipeline, rawPhysicsPipeline, rawSerializationPipeline, rawDebugRenderPipeline) {
+    this.gravity = gravity;
+    this.integrationParameters = new IntegrationParameters(rawIntegrationParameters);
+    this.islands = new IslandManager(rawIslands);
+    this.broadPhase = new BroadPhase(rawBroadPhase);
+    this.narrowPhase = new NarrowPhase(rawNarrowPhase);
+    this.bodies = new RigidBodySet(rawBodies);
+    this.colliders = new ColliderSet(rawColliders);
+    this.impulseJoints = new ImpulseJointSet(rawImpulseJoints);
+    this.multibodyJoints = new MultibodyJointSet(rawMultibodyJoints);
+    this.ccdSolver = new CCDSolver(rawCCDSolver);
+    this.queryPipeline = new QueryPipeline(rawQueryPipeline);
+    this.physicsPipeline = new PhysicsPipeline(rawPhysicsPipeline);
+    this.serializationPipeline = new SerializationPipeline(rawSerializationPipeline);
+    this.debugRenderPipeline = new DebugRenderPipeline(rawDebugRenderPipeline);
+    this.characterControllers = /* @__PURE__ */ new Set();
+    this.vehicleControllers = /* @__PURE__ */ new Set();
+    this.impulseJoints.finalizeDeserialization(this.bodies);
+    this.bodies.finalizeDeserialization(this.colliders);
+    this.colliders.finalizeDeserialization(this.bodies);
+  }
+  // #endif
+  /**
+   * Release the WASM memory occupied by this physics world.
+   *
+   * All the fields of this physics world will be freed as well,
+   * so there is no need to call their `.free()` methods individually.
+   */
+  free() {
+    this.integrationParameters.free();
+    this.islands.free();
+    this.broadPhase.free();
+    this.narrowPhase.free();
+    this.bodies.free();
+    this.colliders.free();
+    this.impulseJoints.free();
+    this.multibodyJoints.free();
+    this.ccdSolver.free();
+    this.queryPipeline.free();
+    this.physicsPipeline.free();
+    this.serializationPipeline.free();
+    this.debugRenderPipeline.free();
+    this.characterControllers.forEach((controller) => controller.free());
+    this.vehicleControllers.forEach((controller) => controller.free());
+    this.integrationParameters = void 0;
+    this.islands = void 0;
+    this.broadPhase = void 0;
+    this.narrowPhase = void 0;
+    this.bodies = void 0;
+    this.colliders = void 0;
+    this.ccdSolver = void 0;
+    this.impulseJoints = void 0;
+    this.multibodyJoints = void 0;
+    this.queryPipeline = void 0;
+    this.physicsPipeline = void 0;
+    this.serializationPipeline = void 0;
+    this.debugRenderPipeline = void 0;
+    this.characterControllers = void 0;
+    this.vehicleControllers = void 0;
+  }
+  static fromRaw(raw) {
+    if (!raw)
+      return null;
+    return new _World(VectorOps.fromRaw(raw.takeGravity()), raw.takeIntegrationParameters(), raw.takeIslandManager(), raw.takeBroadPhase(), raw.takeNarrowPhase(), raw.takeBodies(), raw.takeColliders(), raw.takeImpulseJoints(), raw.takeMultibodyJoints());
+  }
+  /**
+   * Takes a snapshot of this world.
+   *
+   * Use `World.restoreSnapshot` to create a new physics world with a state identical to
+   * the state when `.takeSnapshot()` is called.
+   */
+  takeSnapshot() {
+    return this.serializationPipeline.serializeAll(this.gravity, this.integrationParameters, this.islands, this.broadPhase, this.narrowPhase, this.bodies, this.colliders, this.impulseJoints, this.multibodyJoints);
+  }
+  /**
+   * Creates a new physics world from a snapshot.
+   *
+   * This new physics world will be an identical copy of the snapshoted physics world.
+   */
+  static restoreSnapshot(data) {
+    let deser = new SerializationPipeline();
+    return deser.deserializeAll(data);
+  }
+  /**
+   * Computes all the lines (and their colors) needed to render the scene.
+   */
+  debugRender() {
+    this.debugRenderPipeline.render(this.bodies, this.colliders, this.impulseJoints, this.multibodyJoints, this.narrowPhase);
+    return new DebugRenderBuffers(this.debugRenderPipeline.vertices, this.debugRenderPipeline.colors);
+  }
+  /**
+   * Advance the simulation by one time step.
+   *
+   * All events generated by the physics engine are ignored.
+   *
+   * @param EventQueue - (optional) structure responsible for collecting
+   *   events generated by the physics engine.
+   */
+  step(eventQueue, hooks) {
+    this.physicsPipeline.step(this.gravity, this.integrationParameters, this.islands, this.broadPhase, this.narrowPhase, this.bodies, this.colliders, this.impulseJoints, this.multibodyJoints, this.ccdSolver, eventQueue, hooks);
+    this.queryPipeline.update(this.bodies, this.colliders);
+  }
+  /**
+   * Update colliders positions after rigid-bodies moved.
+   *
+   * When a rigid-body moves, the positions of the colliders attached to it need to be updated. This update is
+   * generally automatically done at the beginning and the end of each simulation step with World.step.
+   * If the positions need to be updated without running a simulation step this method can be called manually.
+   */
+  propagateModifiedBodyPositionsToColliders() {
+    this.bodies.raw.propagateModifiedBodyPositionsToColliders(this.colliders.raw);
+  }
+  /**
+   * Ensure subsequent scene queries take into account the collider positions set before this method is called.
+   *
+   * This does not step the physics simulation forward.
+   */
+  updateSceneQueries() {
+    this.propagateModifiedBodyPositionsToColliders();
+    this.queryPipeline.update(this.bodies, this.colliders);
+  }
+  /**
+   * The current simulation timestep.
+   */
+  get timestep() {
+    return this.integrationParameters.dt;
+  }
+  /**
+   * Sets the new simulation timestep.
+   *
+   * The simulation timestep governs by how much the physics state of the world will
+   * be integrated. A simulation timestep should:
+   * - be as small as possible. Typical values evolve around 0.016 (assuming the chosen unit is milliseconds,
+   * corresponds to the time between two frames of a game running at 60FPS).
+   * - not vary too much during the course of the simulation. A timestep with large variations may
+   * cause instabilities in the simulation.
+   *
+   * @param dt - The timestep length, in seconds.
+   */
+  set timestep(dt) {
+    this.integrationParameters.dt = dt;
+  }
+  /**
+   * The maximum velocity iterations the velocity-based force constraint solver can make.
+   */
+  get maxVelocityIterations() {
+    return this.integrationParameters.maxVelocityIterations;
+  }
+  /**
+   * Sets the maximum number of velocity iterations (default: 4).
+   *
+   * The greater this value is, the most rigid and realistic the physics simulation will be.
+   * However a greater number of iterations is more computationally intensive.
+   *
+   * @param niter - The new maximum number of velocity iterations.
+   */
+  set maxVelocityIterations(niter) {
+    this.integrationParameters.maxVelocityIterations = niter;
+  }
+  /**
+   * The maximum velocity iterations the velocity-based friction constraint solver can make.
+   */
+  get maxVelocityFrictionIterations() {
+    return this.integrationParameters.maxVelocityFrictionIterations;
+  }
+  /**
+   * Sets the maximum number of velocity iterations for friction (default: 8).
+   *
+   * The greater this value is, the most realistic friction will be.
+   * However a greater number of iterations is more computationally intensive.
+   *
+   * @param niter - The new maximum number of velocity iterations.
+   */
+  set maxVelocityFrictionIterations(niter) {
+    this.integrationParameters.maxVelocityFrictionIterations = niter;
+  }
+  /**
+   * The maximum velocity iterations the velocity-based constraint solver can make to attempt to remove
+   * the energy introduced by constraint stabilization.
+   */
+  get maxStabilizationIterations() {
+    return this.integrationParameters.maxStabilizationIterations;
+  }
+  /**
+   * Sets the maximum number of velocity iterations for stabilization (default: 1).
+   *
+   * @param niter - The new maximum number of velocity iterations.
+   */
+  set maxStabilizationIterations(niter) {
+    this.integrationParameters.maxStabilizationIterations = niter;
+  }
+  /**
+   * Creates a new rigid-body from the given rigd-body descriptior.
+   *
+   * @param body - The description of the rigid-body to create.
+   */
+  createRigidBody(body) {
+    return this.bodies.createRigidBody(this.colliders, body);
+  }
+  /**
+   * Creates a new character controller.
+   *
+   * @param offset - The artificial gap added between the character’s chape and its environment.
+   */
+  createCharacterController(offset) {
+    let controller = new KinematicCharacterController(offset, this.integrationParameters, this.bodies, this.colliders, this.queryPipeline);
+    this.characterControllers.add(controller);
+    return controller;
+  }
+  /**
+   * Removes a character controller from this world.
+   *
+   * @param controller - The character controller to remove.
+   */
+  removeCharacterController(controller) {
+    this.characterControllers.delete(controller);
+    controller.free();
+  }
+  // #if DIM3
+  /**
+   * Creates a new vehicle controller.
+   *
+   * @param chassis - The rigid-body used as the chassis of the vehicle controller. When the vehicle
+   *                  controller is updated, it will change directly the rigid-body’s velocity. This
+   *                  rigid-body must be a dynamic or kinematic-velocity-based rigid-body.
+   */
+  createVehicleController(chassis) {
+    let controller = new DynamicRayCastVehicleController(chassis, this.bodies, this.colliders, this.queryPipeline);
+    this.vehicleControllers.add(controller);
+    return controller;
+  }
+  /**
+   * Removes a vehicle controller from this world.
+   *
+   * @param controller - The vehicle controller to remove.
+   */
+  removeVehicleController(controller) {
+    this.vehicleControllers.delete(controller);
+    controller.free();
+  }
+  // #endif
+  /**
+   * Creates a new collider.
+   *
+   * @param desc - The description of the collider.
+   * @param parent - The rigid-body this collider is attached to.
+   */
+  createCollider(desc, parent) {
+    let parentHandle = parent ? parent.handle : void 0;
+    return this.colliders.createCollider(this.bodies, desc, parentHandle);
+  }
+  /**
+   * Creates a new impulse joint from the given joint descriptor.
+   *
+   * @param params - The description of the joint to create.
+   * @param parent1 - The first rigid-body attached to this joint.
+   * @param parent2 - The second rigid-body attached to this joint.
+   * @param wakeUp - Should the attached rigid-bodies be awakened?
+   */
+  createImpulseJoint(params, parent1, parent2, wakeUp) {
+    return this.impulseJoints.createJoint(this.bodies, params, parent1.handle, parent2.handle, wakeUp);
+  }
+  /**
+   * Creates a new multibody joint from the given joint descriptor.
+   *
+   * @param params - The description of the joint to create.
+   * @param parent1 - The first rigid-body attached to this joint.
+   * @param parent2 - The second rigid-body attached to this joint.
+   * @param wakeUp - Should the attached rigid-bodies be awakened?
+   */
+  createMultibodyJoint(params, parent1, parent2, wakeUp) {
+    return this.multibodyJoints.createJoint(params, parent1.handle, parent2.handle, wakeUp);
+  }
+  /**
+   * Retrieves a rigid-body from its handle.
+   *
+   * @param handle - The integer handle of the rigid-body to retrieve.
+   */
+  getRigidBody(handle) {
+    return this.bodies.get(handle);
+  }
+  /**
+   * Retrieves a collider from its handle.
+   *
+   * @param handle - The integer handle of the collider to retrieve.
+   */
+  getCollider(handle) {
+    return this.colliders.get(handle);
+  }
+  /**
+   * Retrieves an impulse joint from its handle.
+   *
+   * @param handle - The integer handle of the impulse joint to retrieve.
+   */
+  getImpulseJoint(handle) {
+    return this.impulseJoints.get(handle);
+  }
+  /**
+   * Retrieves an multibody joint from its handle.
+   *
+   * @param handle - The integer handle of the multibody joint to retrieve.
+   */
+  getMultibodyJoint(handle) {
+    return this.multibodyJoints.get(handle);
+  }
+  /**
+   * Removes the given rigid-body from this physics world.
+   *
+   * This will remove this rigid-body as well as all its attached colliders and joints.
+   * Every other bodies touching or attached by joints to this rigid-body will be woken-up.
+   *
+   * @param body - The rigid-body to remove.
+   */
+  removeRigidBody(body) {
+    if (this.bodies) {
+      this.bodies.remove(body.handle, this.islands, this.colliders, this.impulseJoints, this.multibodyJoints);
+    }
+  }
+  /**
+   * Removes the given collider from this physics world.
+   *
+   * @param collider - The collider to remove.
+   * @param wakeUp - If set to `true`, the rigid-body this collider is attached to will be awaken.
+   */
+  removeCollider(collider, wakeUp) {
+    if (this.colliders) {
+      this.colliders.remove(collider.handle, this.islands, this.bodies, wakeUp);
+    }
+  }
+  /**
+   * Removes the given impulse joint from this physics world.
+   *
+   * @param joint - The impulse joint to remove.
+   * @param wakeUp - If set to `true`, the rigid-bodies attached by this joint will be awaken.
+   */
+  removeImpulseJoint(joint, wakeUp) {
+    if (this.impulseJoints) {
+      this.impulseJoints.remove(joint.handle, wakeUp);
+    }
+  }
+  /**
+   * Removes the given multibody joint from this physics world.
+   *
+   * @param joint - The multibody joint to remove.
+   * @param wakeUp - If set to `true`, the rigid-bodies attached by this joint will be awaken.
+   */
+  removeMultibodyJoint(joint, wakeUp) {
+    if (this.impulseJoints) {
+      this.multibodyJoints.remove(joint.handle, wakeUp);
+    }
+  }
+  /**
+   * Applies the given closure to each collider managed by this physics world.
+   *
+   * @param f(collider) - The function to apply to each collider managed by this physics world. Called as `f(collider)`.
+   */
+  forEachCollider(f) {
+    this.colliders.forEach(f);
+  }
+  /**
+   * Applies the given closure to each rigid-body managed by this physics world.
+   *
+   * @param f(body) - The function to apply to each rigid-body managed by this physics world. Called as `f(collider)`.
+   */
+  forEachRigidBody(f) {
+    this.bodies.forEach(f);
+  }
+  /**
+   * Applies the given closure to each active rigid-body managed by this physics world.
+   *
+   * After a short time of inactivity, a rigid-body is automatically deactivated ("asleep") by
+   * the physics engine in order to save computational power. A sleeping rigid-body never moves
+   * unless it is moved manually by the user.
+   *
+   * @param f - The function to apply to each active rigid-body managed by this physics world. Called as `f(collider)`.
+   */
+  forEachActiveRigidBody(f) {
+    this.bodies.forEachActiveRigidBody(this.islands, f);
+  }
+  /**
+   * Find the closest intersection between a ray and the physics world.
+   *
+   * @param ray - The ray to cast.
+   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
+   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
+   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
+   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
+   *   whereas `false` implies that all shapes are hollow for this ray-cast.
+   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
+   * @param filter - The callback to filter out which collider will be hit.
+   */
+  castRay(ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    return this.queryPipeline.castRay(this.bodies, this.colliders, ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
+  }
+  /**
+   * Find the closest intersection between a ray and the physics world.
+   *
+   * This also computes the normal at the hit point.
+   * @param ray - The ray to cast.
+   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
+   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
+   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
+   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
+   *   whereas `false` implies that all shapes are hollow for this ray-cast.
+   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
+   */
+  castRayAndGetNormal(ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    return this.queryPipeline.castRayAndGetNormal(this.bodies, this.colliders, ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
+  }
+  /**
+   * Cast a ray and collects all the intersections between a ray and the scene.
+   *
+   * @param ray - The ray to cast.
+   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
+   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
+   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
+   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
+   *   whereas `false` implies that all shapes are hollow for this ray-cast.
+   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
+   * @param callback - The callback called once per hit (in no particular order) between a ray and a collider.
+   *   If this callback returns `false`, then the cast will stop and no further hits will be detected/reported.
+   */
+  intersectionsWithRay(ray, maxToi, solid, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    this.queryPipeline.intersectionsWithRay(this.bodies, this.colliders, ray, maxToi, solid, callback, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
+  }
+  /**
+   * Gets the handle of up to one collider intersecting the given shape.
+   *
+   * @param shapePos - The position of the shape used for the intersection test.
+   * @param shapeRot - The orientation of the shape used for the intersection test.
+   * @param shape - The shape used for the intersection test.
+   * @param groups - The bit groups and filter associated to the ray, in order to only
+   *   hit the colliders with collision groups compatible with the ray's group.
+   */
+  intersectionWithShape(shapePos, shapeRot, shape, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    let handle = this.queryPipeline.intersectionWithShape(this.bodies, this.colliders, shapePos, shapeRot, shape, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
+    return handle != null ? this.colliders.get(handle) : null;
+  }
+  /**
+   * Find the projection of a point on the closest collider.
+   *
+   * @param point - The point to project.
+   * @param solid - If this is set to `true` then the collider shapes are considered to
+   *   be plain (if the point is located inside of a plain shape, its projection is the point
+   *   itself). If it is set to `false` the collider shapes are considered to be hollow
+   *   (if the point is located inside of an hollow shape, it is projected on the shape's
+   *   boundary).
+   * @param groups - The bit groups and filter associated to the point to project, in order to only
+   *   project on colliders with collision groups compatible with the ray's group.
+   */
+  projectPoint(point, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    return this.queryPipeline.projectPoint(this.bodies, this.colliders, point, solid, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
+  }
+  /**
+   * Find the projection of a point on the closest collider.
+   *
+   * @param point - The point to project.
+   * @param groups - The bit groups and filter associated to the point to project, in order to only
+   *   project on colliders with collision groups compatible with the ray's group.
+   */
+  projectPointAndGetFeature(point, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    return this.queryPipeline.projectPointAndGetFeature(this.bodies, this.colliders, point, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
+  }
+  /**
+   * Find all the colliders containing the given point.
+   *
+   * @param point - The point used for the containment test.
+   * @param groups - The bit groups and filter associated to the point to test, in order to only
+   *   test on colliders with collision groups compatible with the ray's group.
+   * @param callback - A function called with the handles of each collider with a shape
+   *   containing the `point`.
+   */
+  intersectionsWithPoint(point, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    this.queryPipeline.intersectionsWithPoint(this.bodies, this.colliders, point, this.colliders.castClosure(callback), filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
+  }
+  /**
+   * Casts a shape at a constant linear velocity and retrieve the first collider it hits.
+   * This is similar to ray-casting except that we are casting a whole shape instead of
+   * just a point (the ray origin).
+   *
+   * @param shapePos - The initial position of the shape to cast.
+   * @param shapeRot - The initial rotation of the shape to cast.
+   * @param shapeVel - The constant velocity of the shape to cast (i.e. the cast direction).
+   * @param shape - The shape to cast.
+   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
+   *   limits the distance traveled by the shape to `shapeVel.norm() * maxToi`.
+   * @param stopAtPenetration - If set to `false`, the linear shape-cast won’t immediately stop if
+   *   the shape is penetrating another shape at its starting point **and** its trajectory is such
+   *   that it’s on a path to exist that penetration state.
+   * @param groups - The bit groups and filter associated to the shape to cast, in order to only
+   *   test on colliders with collision groups compatible with this group.
+   */
+  castShape(shapePos, shapeRot, shapeVel, shape, maxToi, stopAtPenetration, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    return this.queryPipeline.castShape(this.bodies, this.colliders, shapePos, shapeRot, shapeVel, shape, maxToi, stopAtPenetration, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
+  }
+  /**
+   * Retrieve all the colliders intersecting the given shape.
+   *
+   * @param shapePos - The position of the shape to test.
+   * @param shapeRot - The orientation of the shape to test.
+   * @param shape - The shape to test.
+   * @param groups - The bit groups and filter associated to the shape to test, in order to only
+   *   test on colliders with collision groups compatible with this group.
+   * @param callback - A function called with the handles of each collider intersecting the `shape`.
+   */
+  intersectionsWithShape(shapePos, shapeRot, shape, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
+    this.queryPipeline.intersectionsWithShape(this.bodies, this.colliders, shapePos, shapeRot, shape, this.colliders.castClosure(callback), filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
+  }
+  /**
+   * Finds the handles of all the colliders with an AABB intersecting the given AABB.
+   *
+   * @param aabbCenter - The center of the AABB to test.
+   * @param aabbHalfExtents - The half-extents of the AABB to test.
+   * @param callback - The callback that will be called with the handles of all the colliders
+   *                   currently intersecting the given AABB.
+   */
+  collidersWithAabbIntersectingAabb(aabbCenter, aabbHalfExtents, callback) {
+    this.queryPipeline.collidersWithAabbIntersectingAabb(aabbCenter, aabbHalfExtents, this.colliders.castClosure(callback));
+  }
+  /**
+   * Enumerates all the colliders potentially in contact with the given collider.
+   *
+   * @param collider1 - The second collider involved in the contact.
+   * @param f - Closure that will be called on each collider that is in contact with `collider1`.
+   */
+  contactsWith(collider1, f) {
+    this.narrowPhase.contactsWith(collider1.handle, this.colliders.castClosure(f));
+  }
+  /**
+   * Enumerates all the colliders intersecting the given colliders, assuming one of them
+   * is a sensor.
+   */
+  intersectionsWith(collider1, f) {
+    this.narrowPhase.intersectionsWith(collider1.handle, this.colliders.castClosure(f));
+  }
+  /**
+   * Iterates through all the contact manifolds between the given pair of colliders.
+   *
+   * @param collider1 - The first collider involved in the contact.
+   * @param collider2 - The second collider involved in the contact.
+   * @param f - Closure that will be called on each contact manifold between the two colliders. If the second argument
+   *            passed to this closure is `true`, then the contact manifold data is flipped, i.e., methods like `localNormal1`
+   *            actually apply to the `collider2` and fields like `localNormal2` apply to the `collider1`.
+   */
+  contactPair(collider1, collider2, f) {
+    this.narrowPhase.contactPair(collider1.handle, collider2.handle, f);
+  }
+  /**
+   * Returns `true` if `collider1` and `collider2` intersect and at least one of them is a sensor.
+   * @param collider1 − The first collider involved in the intersection.
+   * @param collider2 − The second collider involved in the intersection.
+   */
+  intersectionPair(collider1, collider2) {
+    return this.narrowPhase.intersectionPair(collider1.handle, collider2.handle);
+  }
+};
+
+// ../rapier.js/rapier3d/pkg/pipeline/event_queue.js
+var ActiveEvents;
+(function(ActiveEvents2) {
+  ActiveEvents2[ActiveEvents2["NONE"] = 0] = "NONE";
+  ActiveEvents2[ActiveEvents2["COLLISION_EVENTS"] = 1] = "COLLISION_EVENTS";
+  ActiveEvents2[ActiveEvents2["CONTACT_FORCE_EVENTS"] = 2] = "CONTACT_FORCE_EVENTS";
+})(ActiveEvents || (ActiveEvents = {}));
+
+// ../rapier.js/rapier3d/pkg/pipeline/physics_hooks.js
+var ActiveHooks;
+(function(ActiveHooks2) {
+  ActiveHooks2[ActiveHooks2["NONE"] = 0] = "NONE";
+  ActiveHooks2[ActiveHooks2["FILTER_CONTACT_PAIRS"] = 1] = "FILTER_CONTACT_PAIRS";
+  ActiveHooks2[ActiveHooks2["FILTER_INTERSECTION_PAIRS"] = 2] = "FILTER_INTERSECTION_PAIRS";
+})(ActiveHooks || (ActiveHooks = {}));
+var SolverFlags;
+(function(SolverFlags2) {
+  SolverFlags2[SolverFlags2["EMPTY"] = 0] = "EMPTY";
+  SolverFlags2[SolverFlags2["COMPUTE_IMPULSE"] = 1] = "COMPUTE_IMPULSE";
+})(SolverFlags || (SolverFlags = {}));
+
+// ../rapier.js/rapier3d/pkg/geometry/collider.js
 var ActiveCollisionTypes;
 (function(ActiveCollisionTypes2) {
   ActiveCollisionTypes2[ActiveCollisionTypes2["DYNAMIC_DYNAMIC"] = 1] = "DYNAMIC_DYNAMIC";
@@ -13879,8 +16053,8 @@ var ColliderDesc = class _ColliderDesc {
     this.frictionCombineRule = CoefficientCombineRule.Average;
     this.restitutionCombineRule = CoefficientCombineRule.Average;
     this.activeCollisionTypes = ActiveCollisionTypes.DEFAULT;
-    this.activeEvents = 0;
-    this.activeHooks = 0;
+    this.activeEvents = ActiveEvents.NONE;
+    this.activeHooks = ActiveHooks.NONE;
     this.mass = 0;
     this.centerOfMass = VectorOps.zeros();
     this.contactForceEventThreshold = 0;
@@ -14281,7 +16455,7 @@ var ColliderDesc = class _ColliderDesc {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/geometry/collider_set.js
+// ../rapier.js/rapier3d/pkg/geometry/collider_set.js
 var ColliderSet = class {
   constructor(raw) {
     this.raw = raw || new RawColliderSet();
@@ -14433,1111 +16607,6 @@ var ColliderSet = class {
   }
 };
 
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/pipeline/physics_pipeline.js
-var PhysicsPipeline = class {
-  constructor(raw) {
-    this.raw = raw || new RawPhysicsPipeline();
-  }
-  free() {
-    if (!!this.raw) {
-      this.raw.free();
-    }
-    this.raw = void 0;
-  }
-  step(gravity, integrationParameters, islands, broadPhase, narrowPhase, bodies, colliders, impulseJoints, multibodyJoints, ccdSolver, eventQueue, hooks) {
-    let rawG = VectorOps.intoRaw(gravity);
-    if (!!eventQueue) {
-      this.raw.stepWithEvents(rawG, integrationParameters.raw, islands.raw, broadPhase.raw, narrowPhase.raw, bodies.raw, colliders.raw, impulseJoints.raw, multibodyJoints.raw, ccdSolver.raw, eventQueue.raw, hooks, !!hooks ? hooks.filterContactPair : null, !!hooks ? hooks.filterIntersectionPair : null);
-    } else {
-      this.raw.step(rawG, integrationParameters.raw, islands.raw, broadPhase.raw, narrowPhase.raw, bodies.raw, colliders.raw, impulseJoints.raw, multibodyJoints.raw, ccdSolver.raw);
-    }
-    rawG.free();
-  }
-};
-
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/pipeline/query_pipeline.js
-var QueryFilterFlags;
-(function(QueryFilterFlags2) {
-  QueryFilterFlags2[QueryFilterFlags2["EXCLUDE_FIXED"] = 1] = "EXCLUDE_FIXED";
-  QueryFilterFlags2[QueryFilterFlags2["EXCLUDE_KINEMATIC"] = 2] = "EXCLUDE_KINEMATIC";
-  QueryFilterFlags2[QueryFilterFlags2["EXCLUDE_DYNAMIC"] = 4] = "EXCLUDE_DYNAMIC";
-  QueryFilterFlags2[QueryFilterFlags2["EXCLUDE_SENSORS"] = 8] = "EXCLUDE_SENSORS";
-  QueryFilterFlags2[QueryFilterFlags2["EXCLUDE_SOLIDS"] = 16] = "EXCLUDE_SOLIDS";
-  QueryFilterFlags2[QueryFilterFlags2["ONLY_DYNAMIC"] = 3] = "ONLY_DYNAMIC";
-  QueryFilterFlags2[QueryFilterFlags2["ONLY_KINEMATIC"] = 5] = "ONLY_KINEMATIC";
-  QueryFilterFlags2[QueryFilterFlags2["ONLY_FIXED"] = 6] = "ONLY_FIXED";
-})(QueryFilterFlags || (QueryFilterFlags = {}));
-var QueryPipeline = class {
-  constructor(raw) {
-    this.raw = raw || new RawQueryPipeline();
-  }
-  /**
-   * Release the WASM memory occupied by this query pipeline.
-   */
-  free() {
-    if (!!this.raw) {
-      this.raw.free();
-    }
-    this.raw = void 0;
-  }
-  /**
-   * Updates the acceleration structure of the query pipeline.
-   * @param bodies - The set of rigid-bodies taking part in this pipeline.
-   * @param colliders - The set of colliders taking part in this pipeline.
-   */
-  update(bodies, colliders) {
-    this.raw.update(bodies.raw, colliders.raw);
-  }
-  /**
-   * Find the closest intersection between a ray and a set of collider.
-   *
-   * @param colliders - The set of colliders taking part in this pipeline.
-   * @param ray - The ray to cast.
-   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
-   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
-   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
-   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
-   *   whereas `false` implies that all shapes are hollow for this ray-cast.
-   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
-   * @param filter - The callback to filter out which collider will be hit.
-   */
-  castRay(bodies, colliders, ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    let rawOrig = VectorOps.intoRaw(ray.origin);
-    let rawDir = VectorOps.intoRaw(ray.dir);
-    let result = RayColliderToi.fromRaw(colliders, this.raw.castRay(bodies.raw, colliders.raw, rawOrig, rawDir, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate));
-    rawOrig.free();
-    rawDir.free();
-    return result;
-  }
-  /**
-   * Find the closest intersection between a ray and a set of collider.
-   *
-   * This also computes the normal at the hit point.
-   * @param colliders - The set of colliders taking part in this pipeline.
-   * @param ray - The ray to cast.
-   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
-   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
-   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
-   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
-   *   whereas `false` implies that all shapes are hollow for this ray-cast.
-   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
-   */
-  castRayAndGetNormal(bodies, colliders, ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    let rawOrig = VectorOps.intoRaw(ray.origin);
-    let rawDir = VectorOps.intoRaw(ray.dir);
-    let result = RayColliderIntersection.fromRaw(colliders, this.raw.castRayAndGetNormal(bodies.raw, colliders.raw, rawOrig, rawDir, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate));
-    rawOrig.free();
-    rawDir.free();
-    return result;
-  }
-  /**
-   * Cast a ray and collects all the intersections between a ray and the scene.
-   *
-   * @param colliders - The set of colliders taking part in this pipeline.
-   * @param ray - The ray to cast.
-   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
-   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
-   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
-   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
-   *   whereas `false` implies that all shapes are hollow for this ray-cast.
-   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
-   * @param callback - The callback called once per hit (in no particular order) between a ray and a collider.
-   *   If this callback returns `false`, then the cast will stop and no further hits will be detected/reported.
-   */
-  intersectionsWithRay(bodies, colliders, ray, maxToi, solid, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    let rawOrig = VectorOps.intoRaw(ray.origin);
-    let rawDir = VectorOps.intoRaw(ray.dir);
-    let rawCallback = (rawInter) => {
-      return callback(RayColliderIntersection.fromRaw(colliders, rawInter));
-    };
-    this.raw.intersectionsWithRay(bodies.raw, colliders.raw, rawOrig, rawDir, maxToi, solid, rawCallback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate);
-    rawOrig.free();
-    rawDir.free();
-  }
-  /**
-   * Gets the handle of up to one collider intersecting the given shape.
-   *
-   * @param colliders - The set of colliders taking part in this pipeline.
-   * @param shapePos - The position of the shape used for the intersection test.
-   * @param shapeRot - The orientation of the shape used for the intersection test.
-   * @param shape - The shape used for the intersection test.
-   * @param groups - The bit groups and filter associated to the ray, in order to only
-   *   hit the colliders with collision groups compatible with the ray's group.
-   */
-  intersectionWithShape(bodies, colliders, shapePos, shapeRot, shape, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    let rawPos = VectorOps.intoRaw(shapePos);
-    let rawRot = RotationOps.intoRaw(shapeRot);
-    let rawShape = shape.intoRaw();
-    let result = this.raw.intersectionWithShape(bodies.raw, colliders.raw, rawPos, rawRot, rawShape, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate);
-    rawPos.free();
-    rawRot.free();
-    rawShape.free();
-    return result;
-  }
-  /**
-   * Find the projection of a point on the closest collider.
-   *
-   * @param colliders - The set of colliders taking part in this pipeline.
-   * @param point - The point to project.
-   * @param solid - If this is set to `true` then the collider shapes are considered to
-   *   be plain (if the point is located inside of a plain shape, its projection is the point
-   *   itself). If it is set to `false` the collider shapes are considered to be hollow
-   *   (if the point is located inside of an hollow shape, it is projected on the shape's
-   *   boundary).
-   * @param groups - The bit groups and filter associated to the point to project, in order to only
-   *   project on colliders with collision groups compatible with the ray's group.
-   */
-  projectPoint(bodies, colliders, point, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    let rawPoint = VectorOps.intoRaw(point);
-    let result = PointColliderProjection.fromRaw(colliders, this.raw.projectPoint(bodies.raw, colliders.raw, rawPoint, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate));
-    rawPoint.free();
-    return result;
-  }
-  /**
-   * Find the projection of a point on the closest collider.
-   *
-   * @param colliders - The set of colliders taking part in this pipeline.
-   * @param point - The point to project.
-   * @param groups - The bit groups and filter associated to the point to project, in order to only
-   *   project on colliders with collision groups compatible with the ray's group.
-   */
-  projectPointAndGetFeature(bodies, colliders, point, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    let rawPoint = VectorOps.intoRaw(point);
-    let result = PointColliderProjection.fromRaw(colliders, this.raw.projectPointAndGetFeature(bodies.raw, colliders.raw, rawPoint, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate));
-    rawPoint.free();
-    return result;
-  }
-  /**
-   * Find all the colliders containing the given point.
-   *
-   * @param colliders - The set of colliders taking part in this pipeline.
-   * @param point - The point used for the containment test.
-   * @param groups - The bit groups and filter associated to the point to test, in order to only
-   *   test on colliders with collision groups compatible with the ray's group.
-   * @param callback - A function called with the handles of each collider with a shape
-   *   containing the `point`.
-   */
-  intersectionsWithPoint(bodies, colliders, point, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    let rawPoint = VectorOps.intoRaw(point);
-    this.raw.intersectionsWithPoint(bodies.raw, colliders.raw, rawPoint, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate);
-    rawPoint.free();
-  }
-  /**
-   * Casts a shape at a constant linear velocity and retrieve the first collider it hits.
-   * This is similar to ray-casting except that we are casting a whole shape instead of
-   * just a point (the ray origin).
-   *
-   * @param colliders - The set of colliders taking part in this pipeline.
-   * @param shapePos - The initial position of the shape to cast.
-   * @param shapeRot - The initial rotation of the shape to cast.
-   * @param shapeVel - The constant velocity of the shape to cast (i.e. the cast direction).
-   * @param shape - The shape to cast.
-   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
-   *   limits the distance traveled by the shape to `shapeVel.norm() * maxToi`.
-   * @param stopAtPenetration - If set to `false`, the linear shape-cast won’t immediately stop if
-   *   the shape is penetrating another shape at its starting point **and** its trajectory is such
-   *   that it’s on a path to exist that penetration state.
-   * @param groups - The bit groups and filter associated to the shape to cast, in order to only
-   *   test on colliders with collision groups compatible with this group.
-   */
-  castShape(bodies, colliders, shapePos, shapeRot, shapeVel, shape, maxToi, stopAtPenetration, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    let rawPos = VectorOps.intoRaw(shapePos);
-    let rawRot = RotationOps.intoRaw(shapeRot);
-    let rawVel = VectorOps.intoRaw(shapeVel);
-    let rawShape = shape.intoRaw();
-    let result = ShapeColliderTOI.fromRaw(colliders, this.raw.castShape(bodies.raw, colliders.raw, rawPos, rawRot, rawVel, rawShape, maxToi, stopAtPenetration, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate));
-    rawPos.free();
-    rawRot.free();
-    rawVel.free();
-    rawShape.free();
-    return result;
-  }
-  /**
-   * Retrieve all the colliders intersecting the given shape.
-   *
-   * @param colliders - The set of colliders taking part in this pipeline.
-   * @param shapePos - The position of the shape to test.
-   * @param shapeRot - The orientation of the shape to test.
-   * @param shape - The shape to test.
-   * @param groups - The bit groups and filter associated to the shape to test, in order to only
-   *   test on colliders with collision groups compatible with this group.
-   * @param callback - A function called with the handles of each collider intersecting the `shape`.
-   */
-  intersectionsWithShape(bodies, colliders, shapePos, shapeRot, shape, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    let rawPos = VectorOps.intoRaw(shapePos);
-    let rawRot = RotationOps.intoRaw(shapeRot);
-    let rawShape = shape.intoRaw();
-    this.raw.intersectionsWithShape(bodies.raw, colliders.raw, rawPos, rawRot, rawShape, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate);
-    rawPos.free();
-    rawRot.free();
-    rawShape.free();
-  }
-  /**
-   * Finds the handles of all the colliders with an AABB intersecting the given AABB.
-   *
-   * @param aabbCenter - The center of the AABB to test.
-   * @param aabbHalfExtents - The half-extents of the AABB to test.
-   * @param callback - The callback that will be called with the handles of all the colliders
-   *                   currently intersecting the given AABB.
-   */
-  collidersWithAabbIntersectingAabb(aabbCenter, aabbHalfExtents, callback) {
-    let rawCenter = VectorOps.intoRaw(aabbCenter);
-    let rawHalfExtents = VectorOps.intoRaw(aabbHalfExtents);
-    this.raw.collidersWithAabbIntersectingAabb(rawCenter, rawHalfExtents, callback);
-    rawCenter.free();
-    rawHalfExtents.free();
-  }
-};
-
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/pipeline/serialization_pipeline.js
-var SerializationPipeline = class {
-  constructor(raw) {
-    this.raw = raw || new RawSerializationPipeline();
-  }
-  /**
-   * Release the WASM memory occupied by this serialization pipeline.
-   */
-  free() {
-    if (!!this.raw) {
-      this.raw.free();
-    }
-    this.raw = void 0;
-  }
-  /**
-   * Serialize a complete physics state into a single byte array.
-   * @param gravity - The current gravity affecting the simulation.
-   * @param integrationParameters - The integration parameters of the simulation.
-   * @param broadPhase - The broad-phase of the simulation.
-   * @param narrowPhase - The narrow-phase of the simulation.
-   * @param bodies - The rigid-bodies taking part into the simulation.
-   * @param colliders - The colliders taking part into the simulation.
-   * @param impulseJoints - The impulse joints taking part into the simulation.
-   * @param multibodyJoints - The multibody joints taking part into the simulation.
-   */
-  serializeAll(gravity, integrationParameters, islands, broadPhase, narrowPhase, bodies, colliders, impulseJoints, multibodyJoints) {
-    let rawGra = VectorOps.intoRaw(gravity);
-    const res = this.raw.serializeAll(rawGra, integrationParameters.raw, islands.raw, broadPhase.raw, narrowPhase.raw, bodies.raw, colliders.raw, impulseJoints.raw, multibodyJoints.raw);
-    rawGra.free();
-    return res;
-  }
-  /**
-   * Deserialize the complete physics state from a single byte array.
-   *
-   * @param data - The byte array to deserialize.
-   */
-  deserializeAll(data) {
-    return World.fromRaw(this.raw.deserializeAll(data));
-  }
-};
-
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/pipeline/debug_render_pipeline.js
-var DebugRenderBuffers = class {
-  constructor(vertices, colors) {
-    this.vertices = vertices;
-    this.colors = colors;
-  }
-};
-var DebugRenderPipeline = class {
-  constructor(raw) {
-    this.raw = raw || new RawDebugRenderPipeline();
-  }
-  /**
-   * Release the WASM memory occupied by this serialization pipeline.
-   */
-  free() {
-    if (!!this.raw) {
-      this.raw.free();
-    }
-    this.raw = void 0;
-    this.vertices = void 0;
-    this.colors = void 0;
-  }
-  render(bodies, colliders, impulse_joints, multibody_joints, narrow_phase) {
-    this.raw.render(bodies.raw, colliders.raw, impulse_joints.raw, multibody_joints.raw, narrow_phase.raw);
-    this.vertices = this.raw.vertices();
-    this.colors = this.raw.colors();
-  }
-};
-
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/control/character_controller.js
-var CharacterCollision = class {
-};
-var KinematicCharacterController = class {
-  constructor(offset, params, bodies, colliders, queries) {
-    this.params = params;
-    this.bodies = bodies;
-    this.colliders = colliders;
-    this.queries = queries;
-    this.raw = new RawKinematicCharacterController(offset);
-    this.rawCharacterCollision = new RawCharacterCollision();
-    this._applyImpulsesToDynamicBodies = false;
-    this._characterMass = null;
-  }
-  /** @internal */
-  free() {
-    if (!!this.raw) {
-      this.raw.free();
-      this.rawCharacterCollision.free();
-    }
-    this.raw = void 0;
-    this.rawCharacterCollision = void 0;
-  }
-  /**
-   * The direction that goes "up". Used to determine where the floor is, and the floor’s angle.
-   */
-  up() {
-    return this.raw.up();
-  }
-  /**
-   * Sets the direction that goes "up". Used to determine where the floor is, and the floor’s angle.
-   */
-  setUp(vector) {
-    let rawVect = VectorOps.intoRaw(vector);
-    return this.raw.setUp(rawVect);
-    rawVect.free();
-  }
-  applyImpulsesToDynamicBodies() {
-    return this._applyImpulsesToDynamicBodies;
-  }
-  setApplyImpulsesToDynamicBodies(enabled) {
-    this._applyImpulsesToDynamicBodies = enabled;
-  }
-  /**
-   * Returns the custom value of the character mass, if it was set by `this.setCharacterMass`.
-   */
-  characterMass() {
-    return this._characterMass;
-  }
-  /**
-   * Set the mass of the character to be used for impulse resolution if `self.applyImpulsesToDynamicBodies`
-   * is set to `true`.
-   *
-   * If no character mass is set explicitly (or if it is set to `null`) it is automatically assumed to be equal
-   * to the mass of the rigid-body the character collider is attached to; or equal to 0 if the character collider
-   * isn’t attached to any rigid-body.
-   *
-   * @param mass - The mass to set.
-   */
-  setCharacterMass(mass) {
-    this._characterMass = mass;
-  }
-  /**
-   * A small gap to preserve between the character and its surroundings.
-   *
-   * This value should not be too large to avoid visual artifacts, but shouldn’t be too small
-   * (must not be zero) to improve numerical stability of the character controller.
-   */
-  offset() {
-    return this.raw.offset();
-  }
-  /**
-   * Sets a small gap to preserve between the character and its surroundings.
-   *
-   * This value should not be too large to avoid visual artifacts, but shouldn’t be too small
-   * (must not be zero) to improve numerical stability of the character controller.
-   */
-  setOffset(value) {
-    this.raw.setOffset(value);
-  }
-  /**
-   * Is sliding against obstacles enabled?
-   */
-  slideEnabled() {
-    return this.raw.slideEnabled();
-  }
-  /**
-   * Enable or disable sliding against obstacles.
-   */
-  setSlideEnabled(enabled) {
-    this.raw.setSlideEnabled(enabled);
-  }
-  /**
-   * The maximum step height a character can automatically step over.
-   */
-  autostepMaxHeight() {
-    return this.raw.autostepMaxHeight();
-  }
-  /**
-   * The minimum width of free space that must be available after stepping on a stair.
-   */
-  autostepMinWidth() {
-    return this.raw.autostepMinWidth();
-  }
-  /**
-   * Can the character automatically step over dynamic bodies too?
-   */
-  autostepIncludesDynamicBodies() {
-    return this.raw.autostepIncludesDynamicBodies();
-  }
-  /**
-   * Is automatically stepping over small objects enabled?
-   */
-  autostepEnabled() {
-    return this.raw.autostepEnabled();
-  }
-  /**
-   * Enabled automatically stepping over small objects.
-   *
-   * @param maxHeight - The maximum step height a character can automatically step over.
-   * @param minWidth - The minimum width of free space that must be available after stepping on a stair.
-   * @param includeDynamicBodies - Can the character automatically step over dynamic bodies too?
-   */
-  enableAutostep(maxHeight, minWidth, includeDynamicBodies) {
-    this.raw.enableAutostep(maxHeight, minWidth, includeDynamicBodies);
-  }
-  /**
-   * Disable automatically stepping over small objects.
-   */
-  disableAutostep() {
-    return this.raw.disableAutostep();
-  }
-  /**
-   * The maximum angle (radians) between the floor’s normal and the `up` vector that the
-   * character is able to climb.
-   */
-  maxSlopeClimbAngle() {
-    return this.raw.maxSlopeClimbAngle();
-  }
-  /**
-   * Sets the maximum angle (radians) between the floor’s normal and the `up` vector that the
-   * character is able to climb.
-   */
-  setMaxSlopeClimbAngle(angle2) {
-    this.raw.setMaxSlopeClimbAngle(angle2);
-  }
-  /**
-   * The minimum angle (radians) between the floor’s normal and the `up` vector before the
-   * character starts to slide down automatically.
-   */
-  minSlopeSlideAngle() {
-    return this.raw.minSlopeSlideAngle();
-  }
-  /**
-   * Sets the minimum angle (radians) between the floor’s normal and the `up` vector before the
-   * character starts to slide down automatically.
-   */
-  setMinSlopeSlideAngle(angle2) {
-    this.raw.setMinSlopeSlideAngle(angle2);
-  }
-  /**
-   * If snap-to-ground is enabled, should the character be automatically snapped to the ground if
-   * the distance between the ground and its feet are smaller than the specified threshold?
-   */
-  snapToGroundDistance() {
-    return this.raw.snapToGroundDistance();
-  }
-  /**
-   * Enables automatically snapping the character to the ground if the distance between
-   * the ground and its feet are smaller than the specified threshold.
-   */
-  enableSnapToGround(distance3) {
-    this.raw.enableSnapToGround(distance3);
-  }
-  /**
-   * Disables automatically snapping the character to the ground.
-   */
-  disableSnapToGround() {
-    this.raw.disableSnapToGround();
-  }
-  /**
-   * Is automatically snapping the character to the ground enabled?
-   */
-  snapToGroundEnabled() {
-    return this.raw.snapToGroundEnabled();
-  }
-  /**
-   * Computes the movement the given collider is able to execute after hitting and sliding on obstacles.
-   *
-   * @param collider - The collider to move.
-   * @param desiredTranslation - The desired collider movement.
-   * @param filterFlags - Flags for excluding whole subsets of colliders from the obstacles taken into account.
-   * @param filterGroups - Groups for excluding colliders with incompatible collision groups from the obstacles
-   *                       taken into account.
-   * @param filterPredicate - Any collider for which this closure returns `false` will be excluded from the
-   *                          obstacles taken into account.
-   */
-  computeColliderMovement(collider, desiredTranslation, filterFlags, filterGroups, filterPredicate) {
-    let rawTranslation = VectorOps.intoRaw(desiredTranslation);
-    this.raw.computeColliderMovement(this.params.dt, this.bodies.raw, this.colliders.raw, this.queries.raw, collider.handle, rawTranslation, this._applyImpulsesToDynamicBodies, this._characterMass, filterFlags, filterGroups, this.colliders.castClosure(filterPredicate));
-    rawTranslation.free();
-  }
-  /**
-   * The movement computed by the last call to `this.computeColliderMovement`.
-   */
-  computedMovement() {
-    return VectorOps.fromRaw(this.raw.computedMovement());
-  }
-  /**
-   * The result of ground detection computed by the last call to `this.computeColliderMovement`.
-   */
-  computedGrounded() {
-    return this.raw.computedGrounded();
-  }
-  /**
-   * The number of collisions against obstacles detected along the path of the last call
-   * to `this.computeColliderMovement`.
-   */
-  numComputedCollisions() {
-    return this.raw.numComputedCollisions();
-  }
-  /**
-   * Returns the collision against one of the obstacles detected along the path of the last
-   * call to `this.computeColliderMovement`.
-   *
-   * @param i - The i-th collision will be returned.
-   * @param out - If this argument is set, it will be filled with the collision information.
-   */
-  computedCollision(i, out) {
-    if (!this.raw.computedCollision(i, this.rawCharacterCollision)) {
-      return null;
-    } else {
-      let c = this.rawCharacterCollision;
-      out = out !== null && out !== void 0 ? out : new CharacterCollision();
-      out.translationApplied = VectorOps.fromRaw(c.translationApplied());
-      out.translationRemaining = VectorOps.fromRaw(c.translationRemaining());
-      out.toi = c.toi();
-      out.witness1 = VectorOps.fromRaw(c.worldWitness1());
-      out.witness2 = VectorOps.fromRaw(c.worldWitness2());
-      out.normal1 = VectorOps.fromRaw(c.worldNormal1());
-      out.normal2 = VectorOps.fromRaw(c.worldNormal2());
-      out.collider = this.colliders.get(c.handle());
-      return out;
-    }
-  }
-};
-
-// node_modules/.pnpm/@dimforge+rapier3d@0.11.2/node_modules/@dimforge/rapier3d/pipeline/world.js
-var World = class _World {
-  constructor(gravity, rawIntegrationParameters, rawIslands, rawBroadPhase, rawNarrowPhase, rawBodies, rawColliders, rawImpulseJoints, rawMultibodyJoints, rawCCDSolver, rawQueryPipeline, rawPhysicsPipeline, rawSerializationPipeline, rawDebugRenderPipeline) {
-    this.gravity = gravity;
-    this.integrationParameters = new IntegrationParameters(rawIntegrationParameters);
-    this.islands = new IslandManager(rawIslands);
-    this.broadPhase = new BroadPhase(rawBroadPhase);
-    this.narrowPhase = new NarrowPhase(rawNarrowPhase);
-    this.bodies = new RigidBodySet(rawBodies);
-    this.colliders = new ColliderSet(rawColliders);
-    this.impulseJoints = new ImpulseJointSet(rawImpulseJoints);
-    this.multibodyJoints = new MultibodyJointSet(rawMultibodyJoints);
-    this.ccdSolver = new CCDSolver(rawCCDSolver);
-    this.queryPipeline = new QueryPipeline(rawQueryPipeline);
-    this.physicsPipeline = new PhysicsPipeline(rawPhysicsPipeline);
-    this.serializationPipeline = new SerializationPipeline(rawSerializationPipeline);
-    this.debugRenderPipeline = new DebugRenderPipeline(rawDebugRenderPipeline);
-    this.characterControllers = /* @__PURE__ */ new Set();
-    this.impulseJoints.finalizeDeserialization(this.bodies);
-    this.bodies.finalizeDeserialization(this.colliders);
-    this.colliders.finalizeDeserialization(this.bodies);
-  }
-  /**
-   * Release the WASM memory occupied by this physics world.
-   *
-   * All the fields of this physics world will be freed as well,
-   * so there is no need to call their `.free()` methods individually.
-   */
-  free() {
-    this.integrationParameters.free();
-    this.islands.free();
-    this.broadPhase.free();
-    this.narrowPhase.free();
-    this.bodies.free();
-    this.colliders.free();
-    this.impulseJoints.free();
-    this.multibodyJoints.free();
-    this.ccdSolver.free();
-    this.queryPipeline.free();
-    this.physicsPipeline.free();
-    this.serializationPipeline.free();
-    this.debugRenderPipeline.free();
-    this.characterControllers.forEach((controller) => controller.free());
-    this.integrationParameters = void 0;
-    this.islands = void 0;
-    this.broadPhase = void 0;
-    this.narrowPhase = void 0;
-    this.bodies = void 0;
-    this.colliders = void 0;
-    this.ccdSolver = void 0;
-    this.impulseJoints = void 0;
-    this.multibodyJoints = void 0;
-    this.queryPipeline = void 0;
-    this.physicsPipeline = void 0;
-    this.serializationPipeline = void 0;
-    this.debugRenderPipeline = void 0;
-    this.characterControllers = void 0;
-  }
-  static fromRaw(raw) {
-    if (!raw)
-      return null;
-    return new _World(VectorOps.fromRaw(raw.takeGravity()), raw.takeIntegrationParameters(), raw.takeIslandManager(), raw.takeBroadPhase(), raw.takeNarrowPhase(), raw.takeBodies(), raw.takeColliders(), raw.takeImpulseJoints(), raw.takeMultibodyJoints());
-  }
-  /**
-   * Takes a snapshot of this world.
-   *
-   * Use `World.restoreSnapshot` to create a new physics world with a state identical to
-   * the state when `.takeSnapshot()` is called.
-   */
-  takeSnapshot() {
-    return this.serializationPipeline.serializeAll(this.gravity, this.integrationParameters, this.islands, this.broadPhase, this.narrowPhase, this.bodies, this.colliders, this.impulseJoints, this.multibodyJoints);
-  }
-  /**
-   * Creates a new physics world from a snapshot.
-   *
-   * This new physics world will be an identical copy of the snapshoted physics world.
-   */
-  static restoreSnapshot(data) {
-    let deser = new SerializationPipeline();
-    return deser.deserializeAll(data);
-  }
-  /**
-   * Computes all the lines (and their colors) needed to render the scene.
-   */
-  debugRender() {
-    this.debugRenderPipeline.render(this.bodies, this.colliders, this.impulseJoints, this.multibodyJoints, this.narrowPhase);
-    return new DebugRenderBuffers(this.debugRenderPipeline.vertices, this.debugRenderPipeline.colors);
-  }
-  /**
-   * Advance the simulation by one time step.
-   *
-   * All events generated by the physics engine are ignored.
-   *
-   * @param EventQueue - (optional) structure responsible for collecting
-   *   events generated by the physics engine.
-   */
-  step(eventQueue, hooks) {
-    this.physicsPipeline.step(this.gravity, this.integrationParameters, this.islands, this.broadPhase, this.narrowPhase, this.bodies, this.colliders, this.impulseJoints, this.multibodyJoints, this.ccdSolver, eventQueue, hooks);
-    this.queryPipeline.update(this.bodies, this.colliders);
-  }
-  /**
-   * Update colliders positions after rigid-bodies moved.
-   *
-   * When a rigid-body moves, the positions of the colliders attached to it need to be updated. This update is
-   * generally automatically done at the beginning and the end of each simulation step with World.step.
-   * If the positions need to be updated without running a simulation step this method can be called manually.
-   */
-  propagateModifiedBodyPositionsToColliders() {
-    this.bodies.raw.propagateModifiedBodyPositionsToColliders(this.colliders.raw);
-  }
-  /**
-   * Ensure subsequent scene queries take into account the collider positions set before this method is called.
-   *
-   * This does not step the physics simulation forward.
-   */
-  updateSceneQueries() {
-    this.propagateModifiedBodyPositionsToColliders();
-    this.queryPipeline.update(this.bodies, this.colliders);
-  }
-  /**
-   * The current simulation timestep.
-   */
-  get timestep() {
-    return this.integrationParameters.dt;
-  }
-  /**
-   * Sets the new simulation timestep.
-   *
-   * The simulation timestep governs by how much the physics state of the world will
-   * be integrated. A simulation timestep should:
-   * - be as small as possible. Typical values evolve around 0.016 (assuming the chosen unit is milliseconds,
-   * corresponds to the time between two frames of a game running at 60FPS).
-   * - not vary too much during the course of the simulation. A timestep with large variations may
-   * cause instabilities in the simulation.
-   *
-   * @param dt - The timestep length, in seconds.
-   */
-  set timestep(dt) {
-    this.integrationParameters.dt = dt;
-  }
-  /**
-   * The maximum velocity iterations the velocity-based force constraint solver can make.
-   */
-  get maxVelocityIterations() {
-    return this.integrationParameters.maxVelocityIterations;
-  }
-  /**
-   * Sets the maximum number of velocity iterations (default: 4).
-   *
-   * The greater this value is, the most rigid and realistic the physics simulation will be.
-   * However a greater number of iterations is more computationally intensive.
-   *
-   * @param niter - The new maximum number of velocity iterations.
-   */
-  set maxVelocityIterations(niter) {
-    this.integrationParameters.maxVelocityIterations = niter;
-  }
-  /**
-   * The maximum velocity iterations the velocity-based friction constraint solver can make.
-   */
-  get maxVelocityFrictionIterations() {
-    return this.integrationParameters.maxVelocityFrictionIterations;
-  }
-  /**
-   * Sets the maximum number of velocity iterations for friction (default: 8).
-   *
-   * The greater this value is, the most realistic friction will be.
-   * However a greater number of iterations is more computationally intensive.
-   *
-   * @param niter - The new maximum number of velocity iterations.
-   */
-  set maxVelocityFrictionIterations(niter) {
-    this.integrationParameters.maxVelocityFrictionIterations = niter;
-  }
-  /**
-   * The maximum velocity iterations the velocity-based constraint solver can make to attempt to remove
-   * the energy introduced by constraint stabilization.
-   */
-  get maxStabilizationIterations() {
-    return this.integrationParameters.maxStabilizationIterations;
-  }
-  /**
-   * Sets the maximum number of velocity iterations for stabilization (default: 1).
-   *
-   * @param niter - The new maximum number of velocity iterations.
-   */
-  set maxStabilizationIterations(niter) {
-    this.integrationParameters.maxStabilizationIterations = niter;
-  }
-  /**
-   * Creates a new rigid-body from the given rigd-body descriptior.
-   *
-   * @param body - The description of the rigid-body to create.
-   */
-  createRigidBody(body) {
-    return this.bodies.createRigidBody(this.colliders, body);
-  }
-  /**
-   * Creates a new character controller.
-   *
-   * @param offset - The artificial gap added between the character’s chape and its environment.
-   */
-  createCharacterController(offset) {
-    let controller = new KinematicCharacterController(offset, this.integrationParameters, this.bodies, this.colliders, this.queryPipeline);
-    this.characterControllers.add(controller);
-    return controller;
-  }
-  /**
-   * Removes a character controller from this world.
-   *
-   * @param controller - The character controller to remove.
-   */
-  removeCharacterController(controller) {
-    this.characterControllers.delete(controller);
-    controller.free();
-  }
-  /**
-   * Creates a new collider.
-   *
-   * @param desc - The description of the collider.
-   * @param parent - The rigid-body this collider is attached to.
-   */
-  createCollider(desc, parent) {
-    let parentHandle = parent ? parent.handle : void 0;
-    return this.colliders.createCollider(this.bodies, desc, parentHandle);
-  }
-  /**
-   * Creates a new impulse joint from the given joint descriptor.
-   *
-   * @param params - The description of the joint to create.
-   * @param parent1 - The first rigid-body attached to this joint.
-   * @param parent2 - The second rigid-body attached to this joint.
-   * @param wakeUp - Should the attached rigid-bodies be awakened?
-   */
-  createImpulseJoint(params, parent1, parent2, wakeUp) {
-    return this.impulseJoints.createJoint(this.bodies, params, parent1.handle, parent2.handle, wakeUp);
-  }
-  /**
-   * Creates a new multibody joint from the given joint descriptor.
-   *
-   * @param params - The description of the joint to create.
-   * @param parent1 - The first rigid-body attached to this joint.
-   * @param parent2 - The second rigid-body attached to this joint.
-   * @param wakeUp - Should the attached rigid-bodies be awakened?
-   */
-  createMultibodyJoint(params, parent1, parent2, wakeUp) {
-    return this.multibodyJoints.createJoint(params, parent1.handle, parent2.handle, wakeUp);
-  }
-  /**
-   * Retrieves a rigid-body from its handle.
-   *
-   * @param handle - The integer handle of the rigid-body to retrieve.
-   */
-  getRigidBody(handle) {
-    return this.bodies.get(handle);
-  }
-  /**
-   * Retrieves a collider from its handle.
-   *
-   * @param handle - The integer handle of the collider to retrieve.
-   */
-  getCollider(handle) {
-    return this.colliders.get(handle);
-  }
-  /**
-   * Retrieves an impulse joint from its handle.
-   *
-   * @param handle - The integer handle of the impulse joint to retrieve.
-   */
-  getImpulseJoint(handle) {
-    return this.impulseJoints.get(handle);
-  }
-  /**
-   * Retrieves an multibody joint from its handle.
-   *
-   * @param handle - The integer handle of the multibody joint to retrieve.
-   */
-  getMultibodyJoint(handle) {
-    return this.multibodyJoints.get(handle);
-  }
-  /**
-   * Removes the given rigid-body from this physics world.
-   *
-   * This will remove this rigid-body as well as all its attached colliders and joints.
-   * Every other bodies touching or attached by joints to this rigid-body will be woken-up.
-   *
-   * @param body - The rigid-body to remove.
-   */
-  removeRigidBody(body) {
-    if (this.bodies) {
-      this.bodies.remove(body.handle, this.islands, this.colliders, this.impulseJoints, this.multibodyJoints);
-    }
-  }
-  /**
-   * Removes the given collider from this physics world.
-   *
-   * @param collider - The collider to remove.
-   * @param wakeUp - If set to `true`, the rigid-body this collider is attached to will be awaken.
-   */
-  removeCollider(collider, wakeUp) {
-    if (this.colliders) {
-      this.colliders.remove(collider.handle, this.islands, this.bodies, wakeUp);
-    }
-  }
-  /**
-   * Removes the given impulse joint from this physics world.
-   *
-   * @param joint - The impulse joint to remove.
-   * @param wakeUp - If set to `true`, the rigid-bodies attached by this joint will be awaken.
-   */
-  removeImpulseJoint(joint, wakeUp) {
-    if (this.impulseJoints) {
-      this.impulseJoints.remove(joint.handle, wakeUp);
-    }
-  }
-  /**
-   * Removes the given multibody joint from this physics world.
-   *
-   * @param joint - The multibody joint to remove.
-   * @param wakeUp - If set to `true`, the rigid-bodies attached by this joint will be awaken.
-   */
-  removeMultibodyJoint(joint, wakeUp) {
-    if (this.impulseJoints) {
-      this.multibodyJoints.remove(joint.handle, wakeUp);
-    }
-  }
-  /**
-   * Applies the given closure to each collider managed by this physics world.
-   *
-   * @param f(collider) - The function to apply to each collider managed by this physics world. Called as `f(collider)`.
-   */
-  forEachCollider(f) {
-    this.colliders.forEach(f);
-  }
-  /**
-   * Applies the given closure to each rigid-body managed by this physics world.
-   *
-   * @param f(body) - The function to apply to each rigid-body managed by this physics world. Called as `f(collider)`.
-   */
-  forEachRigidBody(f) {
-    this.bodies.forEach(f);
-  }
-  /**
-   * Applies the given closure to each active rigid-body managed by this physics world.
-   *
-   * After a short time of inactivity, a rigid-body is automatically deactivated ("asleep") by
-   * the physics engine in order to save computational power. A sleeping rigid-body never moves
-   * unless it is moved manually by the user.
-   *
-   * @param f - The function to apply to each active rigid-body managed by this physics world. Called as `f(collider)`.
-   */
-  forEachActiveRigidBody(f) {
-    this.bodies.forEachActiveRigidBody(this.islands, f);
-  }
-  /**
-   * Find the closest intersection between a ray and the physics world.
-   *
-   * @param ray - The ray to cast.
-   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
-   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
-   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
-   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
-   *   whereas `false` implies that all shapes are hollow for this ray-cast.
-   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
-   * @param filter - The callback to filter out which collider will be hit.
-   */
-  castRay(ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    return this.queryPipeline.castRay(this.bodies, this.colliders, ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
-  }
-  /**
-   * Find the closest intersection between a ray and the physics world.
-   *
-   * This also computes the normal at the hit point.
-   * @param ray - The ray to cast.
-   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
-   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
-   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
-   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
-   *   whereas `false` implies that all shapes are hollow for this ray-cast.
-   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
-   */
-  castRayAndGetNormal(ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    return this.queryPipeline.castRayAndGetNormal(this.bodies, this.colliders, ray, maxToi, solid, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
-  }
-  /**
-   * Cast a ray and collects all the intersections between a ray and the scene.
-   *
-   * @param ray - The ray to cast.
-   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
-   *   limits the length of the ray to `ray.dir.norm() * maxToi`.
-   * @param solid - If `false` then the ray will attempt to hit the boundary of a shape, even if its
-   *   origin already lies inside of a shape. In other terms, `true` implies that all shapes are plain,
-   *   whereas `false` implies that all shapes are hollow for this ray-cast.
-   * @param groups - Used to filter the colliders that can or cannot be hit by the ray.
-   * @param callback - The callback called once per hit (in no particular order) between a ray and a collider.
-   *   If this callback returns `false`, then the cast will stop and no further hits will be detected/reported.
-   */
-  intersectionsWithRay(ray, maxToi, solid, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    this.queryPipeline.intersectionsWithRay(this.bodies, this.colliders, ray, maxToi, solid, callback, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
-  }
-  /**
-   * Gets the handle of up to one collider intersecting the given shape.
-   *
-   * @param shapePos - The position of the shape used for the intersection test.
-   * @param shapeRot - The orientation of the shape used for the intersection test.
-   * @param shape - The shape used for the intersection test.
-   * @param groups - The bit groups and filter associated to the ray, in order to only
-   *   hit the colliders with collision groups compatible with the ray's group.
-   */
-  intersectionWithShape(shapePos, shapeRot, shape, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    let handle = this.queryPipeline.intersectionWithShape(this.bodies, this.colliders, shapePos, shapeRot, shape, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
-    return handle != null ? this.colliders.get(handle) : null;
-  }
-  /**
-   * Find the projection of a point on the closest collider.
-   *
-   * @param point - The point to project.
-   * @param solid - If this is set to `true` then the collider shapes are considered to
-   *   be plain (if the point is located inside of a plain shape, its projection is the point
-   *   itself). If it is set to `false` the collider shapes are considered to be hollow
-   *   (if the point is located inside of an hollow shape, it is projected on the shape's
-   *   boundary).
-   * @param groups - The bit groups and filter associated to the point to project, in order to only
-   *   project on colliders with collision groups compatible with the ray's group.
-   */
-  projectPoint(point, solid, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    return this.queryPipeline.projectPoint(this.bodies, this.colliders, point, solid, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
-  }
-  /**
-   * Find the projection of a point on the closest collider.
-   *
-   * @param point - The point to project.
-   * @param groups - The bit groups and filter associated to the point to project, in order to only
-   *   project on colliders with collision groups compatible with the ray's group.
-   */
-  projectPointAndGetFeature(point, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    return this.queryPipeline.projectPointAndGetFeature(this.bodies, this.colliders, point, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
-  }
-  /**
-   * Find all the colliders containing the given point.
-   *
-   * @param point - The point used for the containment test.
-   * @param groups - The bit groups and filter associated to the point to test, in order to only
-   *   test on colliders with collision groups compatible with the ray's group.
-   * @param callback - A function called with the handles of each collider with a shape
-   *   containing the `point`.
-   */
-  intersectionsWithPoint(point, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    this.queryPipeline.intersectionsWithPoint(this.bodies, this.colliders, point, this.colliders.castClosure(callback), filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
-  }
-  /**
-   * Casts a shape at a constant linear velocity and retrieve the first collider it hits.
-   * This is similar to ray-casting except that we are casting a whole shape instead of
-   * just a point (the ray origin).
-   *
-   * @param shapePos - The initial position of the shape to cast.
-   * @param shapeRot - The initial rotation of the shape to cast.
-   * @param shapeVel - The constant velocity of the shape to cast (i.e. the cast direction).
-   * @param shape - The shape to cast.
-   * @param maxToi - The maximum time-of-impact that can be reported by this cast. This effectively
-   *   limits the distance traveled by the shape to `shapeVel.norm() * maxToi`.
-   * @param stopAtPenetration - If set to `false`, the linear shape-cast won’t immediately stop if
-   *   the shape is penetrating another shape at its starting point **and** its trajectory is such
-   *   that it’s on a path to exist that penetration state.
-   * @param groups - The bit groups and filter associated to the shape to cast, in order to only
-   *   test on colliders with collision groups compatible with this group.
-   */
-  castShape(shapePos, shapeRot, shapeVel, shape, maxToi, stopAtPenetration, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    return this.queryPipeline.castShape(this.bodies, this.colliders, shapePos, shapeRot, shapeVel, shape, maxToi, stopAtPenetration, filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
-  }
-  /**
-   * Retrieve all the colliders intersecting the given shape.
-   *
-   * @param shapePos - The position of the shape to test.
-   * @param shapeRot - The orientation of the shape to test.
-   * @param shape - The shape to test.
-   * @param groups - The bit groups and filter associated to the shape to test, in order to only
-   *   test on colliders with collision groups compatible with this group.
-   * @param callback - A function called with the handles of each collider intersecting the `shape`.
-   */
-  intersectionsWithShape(shapePos, shapeRot, shape, callback, filterFlags, filterGroups, filterExcludeCollider, filterExcludeRigidBody, filterPredicate) {
-    this.queryPipeline.intersectionsWithShape(this.bodies, this.colliders, shapePos, shapeRot, shape, this.colliders.castClosure(callback), filterFlags, filterGroups, filterExcludeCollider ? filterExcludeCollider.handle : null, filterExcludeRigidBody ? filterExcludeRigidBody.handle : null, this.colliders.castClosure(filterPredicate));
-  }
-  /**
-   * Finds the handles of all the colliders with an AABB intersecting the given AABB.
-   *
-   * @param aabbCenter - The center of the AABB to test.
-   * @param aabbHalfExtents - The half-extents of the AABB to test.
-   * @param callback - The callback that will be called with the handles of all the colliders
-   *                   currently intersecting the given AABB.
-   */
-  collidersWithAabbIntersectingAabb(aabbCenter, aabbHalfExtents, callback) {
-    this.queryPipeline.collidersWithAabbIntersectingAabb(aabbCenter, aabbHalfExtents, this.colliders.castClosure(callback));
-  }
-  /**
-   * Enumerates all the colliders potentially in contact with the given collider.
-   *
-   * @param collider1 - The second collider involved in the contact.
-   * @param f - Closure that will be called on each collider that is in contact with `collider1`.
-   */
-  contactsWith(collider1, f) {
-    this.narrowPhase.contactsWith(collider1.handle, this.colliders.castClosure(f));
-  }
-  /**
-   * Enumerates all the colliders intersecting the given colliders, assuming one of them
-   * is a sensor.
-   */
-  intersectionsWith(collider1, f) {
-    this.narrowPhase.intersectionsWith(collider1.handle, this.colliders.castClosure(f));
-  }
-  /**
-   * Iterates through all the contact manifolds between the given pair of colliders.
-   *
-   * @param collider1 - The first collider involved in the contact.
-   * @param collider2 - The second collider involved in the contact.
-   * @param f - Closure that will be called on each contact manifold between the two colliders. If the second argument
-   *            passed to this closure is `true`, then the contact manifold data is flipped, i.e., methods like `localNormal1`
-   *            actually apply to the `collider2` and fields like `localNormal2` apply to the `collider1`.
-   */
-  contactPair(collider1, collider2, f) {
-    this.narrowPhase.contactPair(collider1.handle, collider2.handle, f);
-  }
-  /**
-   * Returns `true` if `collider1` and `collider2` intersect and at least one of them is a sensor.
-   * @param collider1 − The first collider involved in the intersection.
-   * @param collider2 − The second collider involved in the intersection.
-   */
-  intersectionPair(collider1, collider2) {
-    return this.narrowPhase.intersectionPair(collider1.handle, collider2.handle);
-  }
-};
-
 // physics.js
 var Physics = class {
   constructor() {
@@ -15650,7 +16719,7 @@ function init() {
   const debugMesh = new PhysDebugMesh(gl, physics.world, scene);
   function makeCapsule(x, y, z, length4, radius) {
     const collDesc = new ColliderDesc(new Capsule(length4, radius));
-    const bodyDesc = new RigidBodyDesc(RigidBodyType.Dynamic).setTranslation(x, y, z);
+    const bodyDesc = new RigidBodyDesc(RigidBodyType.Dynamic).setTranslation(x + Math.random() / 100, y + Math.random() / 100, z + Math.random() / 100);
     const body = physics.world.createRigidBody(bodyDesc);
     return {
       body,
@@ -15658,7 +16727,12 @@ function init() {
     };
   }
   function makeJoint(anchor1, anchor2, body1, body2) {
-    const params = JointData.spherical(anchor1, anchor2);
+    const params = JointData.generic(
+      anchor1,
+      anchor2,
+      { x: 0, y: 0, z: 1 },
+      JointAxesMask.X | JointAxesMask.Y | JointAxesMask.Z | JointAxesMask.AngZ
+    );
     const joint = physics.world.createImpulseJoint(params, body1, body2, true);
     joint.setContactsEnabled(false);
     return joint;
@@ -15764,4 +16838,4 @@ function init() {
   }
 }
 init();
-//# sourceMappingURL=sausage.js.map
+//# sourceMappingURL=index.js.map
