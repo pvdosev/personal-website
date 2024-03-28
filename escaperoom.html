@@ -126,7 +126,7 @@
         </div>
         <div id="codePage" class="center" style="flex-direction: column;">
             <label for="code" class="inside">ENTER CODE:</label>
-            <input type="text" id="code" name="code" size="10" maxlength="10" class="inside border">
+            <input type="text" id="code" name="code" size="10" maxlength="12" class="inside border">
             <button type="button" id="submitButton" class="inside border" style="padding: 0.5em;">SUBMIT</button>
         </div>
     </body>
@@ -135,8 +135,9 @@
      codePage = document.getElementById("codePage");
      correctPage = document.getElementById("correctPage");
      incorrectPage = document.getElementById("incorrectPage");
+     const secretCodes = ["ENCYCLOPEDIA", "CHAMPIONSHIP", "CRYPTOGRAPHY", "ASTROPHYSICS", "SUCCESSFULLY"];
      function check_code() {
-         if (codeBox.value.toUpperCase() == "TEST") {
+         if (secretCodes.includes(codeBox.value.toUpperCase())) {
              codePage.style.display = "none";
              correctPage.style.display = "flex";
          }
